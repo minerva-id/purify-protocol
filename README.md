@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧹 Purify Protocol - Token Burning Platform
 
-## Getting Started
+![Purify Protocol Banner](https://via.placeholder.com/1200x400/6366f1/ffffff?text=🧹+PURIFY+PROTOCOL+🔥)
 
-First, run the development server:
+## 🚀 Live Demo
+[![Vercel](https://img.shields.io/badge/🌐_LIVE_DEMO-Purify_Protocol-black?style=for-the-badge&logo=vercel)](https://purify-protocol.vercel.app)
+[![GitHub](https://img.shields.io/badge/💻_GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/minerva-id/purify-protocol)
+
+## 📖 About The Project
+
+Purify Protocol is a revolutionary DeFi platform on Solana that enables users to strategically burn tokens to increase scarcity and value. Transform your token economics through controlled deflationary mechanisms.
+
+### 🎯 Key Features
+
+- 🔥 **Token Burning** - Strategic token removal from circulation
+- 📊 **Real-time Analytics** - Live burning statistics and impact metrics  
+- 👛 **Multi-Wallet Support** - Phantom, Solflare, Backpack compatibility
+- 📱 **Mobile Optimized** - Flawless experience on all devices
+- 🎨 **Modern UI/UX** - Beautiful gradients and smooth animations
+- 🔒 **Secure Transactions** - Solana blockchain security
+
+## 🛠 Tech Stack
+
+![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)
+![Solana](https://img.shields.io/badge/Solana-Web3-purple?style=for-the-badge&logo=solana)
+![Tailwind](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css)
+![Vercel](https://img.shields.io/badge/Vercel-Deployment-black?style=for-the-badge&logo=vercel)
+
+## 🏗 Project Structure
+
+purify-protocol/
+├── src/
+│ ├── app/ # Next.js 14 App Router
+│ ├── components/ # React components
+│ ├── contexts/ # Wallet & App contexts
+│ └── utils/ # Solana utilities
+├── public/ # Static assets
+└── docs/ # Documentation
+
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Solana wallet (Phantom, Solflare, etc.)
+
+### Installation
 
 ```bash
+# Clone repository
+git clone https://github.com/minerva-id/purify-protocol.git
+
+# Navigate to project
+cd purify-protocol
+
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit http://localhost:3000 to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# Build the application
+npm run build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Start production server
+npm start
