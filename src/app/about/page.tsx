@@ -214,7 +214,7 @@ export default function AboutPage() {
                   href="/" 
                   className="text-gray-300 hover:text-emerald-400 transition-colors duration-200"
                 >
-                  {t('nav.home', 'Home')}
+                  {t('nav.home')}
                 </Link>
                 <Link 
                   href="/whitepaper" 
