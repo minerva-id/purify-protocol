@@ -570,6 +570,124 @@ const whitepaperContent = {
   id: indonesianContent
 };
 
+// Type definitions for better type safety
+type WhitepaperSection = {
+  abstract: {
+    title: string;
+    content: string;
+  };
+  introduction: {
+    title: string;
+    problem: {
+      title: string;
+      description: string;
+      points: string[];
+    };
+    solution: {
+      title: string;
+      description: string;
+      points: string[];
+    };
+  };
+  technical: {
+    title: string;
+    design: {
+      title: string;
+      description: string;
+      code: string[];
+    };
+    accounts: {
+      title: string;
+      items: Array<{ name: string; description: string }>;
+    };
+    security: {
+      title: string;
+      features: string[];
+    };
+  };
+  economic: {
+    title: string;
+    value: {
+      title: string;
+      holders: {
+        title: string;
+        points: string[];
+      };
+      ecosystem: {
+        title: string;
+        points: string[];
+      };
+    };
+    certificates: {
+      title: string;
+      points: string[];
+    };
+    sustainability: {
+      title: string;
+      points: string[];
+    };
+  };
+  useCases: {
+    title: string;
+    items: Array<{
+      category: string;
+      points: string[];
+    }>;
+  };
+  roadmap: {
+    title: string;
+    phases: Array<{
+      phase: string;
+      timeframe: string;
+      completed: boolean;
+      items: string[];
+    }>;
+  };
+  tokenomics: {
+    title: string;
+    purifyToken: {
+      title: string;
+      description: string;
+      features: Array<{ feature: string; description: string }>;
+    };
+    certificates: {
+      title: string;
+      points: string[];
+    };
+  };
+  team: {
+    title: string;
+    development: {
+      title: string;
+      points: string[];
+    };
+    governance: {
+      title: string;
+      points: string[];
+    };
+  };
+  risks: {
+    title: string;
+    categories: Array<{
+      category: string;
+      points: string[];
+    }>;
+  };
+  conclusion: {
+    title: string;
+    content: string[];
+  };
+  contact: {
+    title: string;
+    resources: Array<{
+      icon: JSX.Element;
+      label: string;
+      value: string;
+    }>;
+    disclaimer: string;
+  };
+};
+
 export default function WhitepaperPage() {
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
@@ -584,35 +702,37 @@ export default function WhitepaperPage() {
   };
 
   const handleDownloadPDF = () => {
-  try {
-    const filename = locale === 'id' ? 'whitepaper-id.pdf' : 'whitepaper.pdf';
-    const downloadName = `Purify-Protocol-Whitepaper-v1.0-${locale}.pdf`;
-    
-    console.log(`Attempting to download: ${filename}`);
-    
-    const link = document.createElement('a');
-    link.href = `/${filename}`;
-    link.download = downloadName;
-    link.style.display = 'none';
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Optional: Track download success
-    console.log('Download initiated successfully');
-    
-  } catch (error) {
-    console.error('Download failed:', error);
-    
-    // Fallback: open in new tab
-    const filename = locale === 'id' ? 'whitepaper-id.pdf' : 'whitepaper.pdf';
-    window.open(`/${filename}`, '_blank');
-  }
-};
+    try {
+      const filename = locale === 'id' ? 'whitepaper-id.pdf' : 'whitepaper.pdf';
+      const downloadName = `Purify-Protocol-Whitepaper-v1.0-${locale}.pdf`;
+      
+      console.log(`Attempting to download: ${filename}`);
+      
+      const link = document.createElement('a');
+      link.href = `/${filename}`;
+      link.download = downloadName;
+      link.style.display = 'none';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log('Download initiated successfully');
+      
+    } catch (error) {
+      console.error('Download failed:', error);
+      
+      // Fallback: open in new tab
+      const filename = locale === 'id' ? 'whitepaper-id.pdf' : 'whitepaper.pdf';
+      window.open(`/${filename}`, '_blank');
+    }
+  };
 
-  const wp = (section: keyof typeof englishContent) => 
-    whitepaperContent[locale][section] || whitepaperContent.en[section];
+  // Safe content accessor function
+  const wp = <K extends keyof WhitepaperSection>(section: K): WhitepaperSection[K] => {
+    const content = whitepaperContent[locale as keyof typeof whitepaperContent] || whitepaperContent.en;
+    return content[section] as WhitepaperSection[K];
+  };
 
   if (!isClient) {
     return (
@@ -631,39 +751,38 @@ export default function WhitepaperPage() {
     <div className="min-h-screen bg-gradient-to-b from-[#03150f] via-[#09261f] to-[#010a07] text-white font-sans">
       {/* Header */}
       <motion.header 
-  className="border-b border-emerald-800/30 bg-[#03150f]/80 backdrop-blur-sm sticky top-0 z-50"
-  initial={{ y: -50, opacity: 0 }}
-  animate={{ y: 0, opacity: 1 }}
-  transition={{ duration: 0.6 }}
->
-  <div className="container mx-auto px-4 py-3">
-    <div className="flex justify-between items-center">
-      <div className="flex items-center space-x-4">
-        <button
-          onClick={handleBack}
-          className="text-gray-300 hover:text-emerald-400 transition-colors duration-200 flex items-center space-x-2"
-        >
-          <ArrowLeft size={20} />
-          <span>{locale === 'id' ? 'Kembali ke Beranda' : 'Back to Home'}</span>
-        </button>
-        <ImageLogo />
-      </div>
-      
-      <div className="flex items-center space-x-4">
-        {/* Language Switcher - sekarang di pojok kanan */}
-        <WhitepaperLanguageSwitcher />
-        
-        <button
-          onClick={handleDownloadPDF}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm flex items-center space-x-2"
-        >
-          <Download size={16} />
-          <span>{locale === 'id' ? 'Unduh PDF' : 'Download PDF'}</span>
-        </button>
-      </div>
-    </div>
-  </div>
-</motion.header>
+        className="border-b border-emerald-800/30 bg-[#03150f]/80 backdrop-blur-sm sticky top-0 z-50"
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleBack}
+                className="text-gray-300 hover:text-emerald-400 transition-colors duration-200 flex items-center space-x-2"
+              >
+                <ArrowLeft size={20} />
+                <span>{locale === 'id' ? 'Kembali ke Beranda' : 'Back to Home'}</span>
+              </button>
+              <ImageLogo />
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <WhitepaperLanguageSwitcher />
+              
+              <button
+                onClick={handleDownloadPDF}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm flex items-center space-x-2"
+              >
+                <Download size={16} />
+                <span>{locale === 'id' ? 'Unduh PDF' : 'Download PDF'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.header>
 
       {/* Whitepaper Content */}
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -1121,4 +1240,4 @@ export default function WhitepaperPage() {
       </div>
     </div>
   );
-}
+  }
