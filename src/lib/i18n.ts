@@ -9,6 +9,7 @@ export const locales: Locale[] = ['en', 'id'];
 export const translations = {
   en: {
     // Navigation
+    'nav.home': 'Home',
     'nav.whitepaper': 'Whitepaper',
     'nav.docs': 'Documentation',
     'nav.about': 'About',
@@ -77,6 +78,7 @@ export const translations = {
   },
   id: {
     // Navigation
+    'nav.home': 'Beranda',
     'nav.whitepaper': 'Whitepaper',
     'nav.docs': 'Dokumentasi',
     'nav.about': 'Tentang',
@@ -153,4 +155,5 @@ export function getTranslation(locale: Locale, key: TranslationKey): string {
 
 export function useTranslations(locale: Locale) {
   return (key: TranslationKey) => getTranslation(locale, key);
+
 }
