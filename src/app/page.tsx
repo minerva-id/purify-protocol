@@ -1,12 +1,43 @@
 "use client";
 
+// =============================================
+// REACT & ANIMATION IMPORTS
+// =============================================
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
-import { Leaf, Zap, Globe2, Trophy, Users, Coins, Shield, Sparkles } from "lucide-react";
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import PurifyLogo from "@/components/PurifyLogo";
+import { useState, useEffect, useRef } from "react";
 
-// Fixed particles data
+// =============================================
+// UI COMPONENTS & ICONS IMPORTS
+// =============================================
+import { Leaf, Zap, Globe2, Trophy, Users, Coins, Shield, Sparkles, FileText, Languages } from "lucide-react";
+
+// =============================================
+// WALLET & BLOCKCHAIN IMPORTS
+// =============================================
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWallet } from '@solana/wallet-adapter-react';
+
+// =============================================
+// CUSTOM COMPONENTS IMPORTS
+// =============================================
+import ImageLogo from "@/components/ImageLogo";
+
+// =============================================
+// NEXT.JS & NAVIGATION IMPORTS
+// =============================================
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+
+// =============================================
+// INTERNATIONALIZATION IMPORTS
+// =============================================
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslations } from '@/lib/i18n';
+
+// =============================================
+// BACKGROUND PARTICLE CONFIGURATION
+// =============================================
+// Fixed particles untuk background animation
 const fixedParticles = Array.from({ length: 20 }, (_, i) => ({
   id: i,
   width: 2 + (i * 0.3),
@@ -15,31 +46,129 @@ const fixedParticles = Array.from({ length: 20 }, (_, i) => ({
   top: 5 + (i * 4.5),
 }));
 
-export default function PurifyLanding() {
-  const [isClient, setIsClient] = useState(false);
-  const [walletConnected, setWalletConnected] = useState(false);
+// =============================================
+// LANGUAGE SWITCHER COMPONENT
+// =============================================
+function LanguageSwitcher() {
+  const { locale, setLocale } = useLanguage();
 
+  return (
+    <div className="relative group">
+      {/* Language switcher button */}
+      <button className="flex items-center space-x-2 text-gray-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg border border-emerald-800/30 hover:border-emerald-600/50">
+        <Languages size={18} />
+        <span className="text-sm font-medium">{locale.toUpperCase()}</span>
+      </button>
+      
+      {/* Dropdown language options */}
+      <div className="absolute top-full right-0 mt-2 w-32 bg-[#03150f] border border-emerald-700/30 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 backdrop-blur-sm">
+        <button
+          onClick={() => setLocale('en')}
+          className={`w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${
+            locale === 'en' 
+              ? 'bg-emerald-600 text-white' 
+              : 'text-gray-300 hover:bg-emerald-500/20 hover:text-emerald-400'
+          } first:rounded-t-lg last:rounded-b-lg`}
+        >
+          English
+        </button>
+        <button
+          onClick={() => setLocale('id')}
+          className={`w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${
+            locale === 'id' 
+              ? 'bg-emerald-600 text-white' 
+              : 'text-gray-300 hover:bg-emerald-500/20 hover:text-emerald-400'
+          } first:rounded-t-lg last:rounded-b-lg`}
+        >
+          Indonesia
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// =============================================
+// MAIN LANDING PAGE COMPONENT
+// =============================================
+export default function PurifyLanding() {
+  // =============================================
+  // STATE MANAGEMENT
+  // =============================================
+  const [isClient, setIsClient] = useState(false);
+  
+  // =============================================
+  // WALLET & ROUTING HOOKS
+  // =============================================
+  const { connected } = useWallet();
+  const router = useRouter();
+  
+  // =============================================
+  // INTERNATIONALIZATION HOOKS
+  // =============================================
+  const { locale } = useLanguage();
+  const t = useTranslations(locale);
+
+  // =============================================
+  // REF FOR WALLET BUTTON
+  // =============================================
+  const walletButtonRef = useRef<HTMLButtonElement>(null);
+
+  // =============================================
+  // USE EFFECT FOR CLIENT-SIDE DETECTION
+  // =============================================
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  // =============================================
+  // PROTOCOL STATISTICS DATA
+  // =============================================
   const protocolStats = [
-    { icon: <Coins size={24} />, label: "Total Purged", value: "1.2M", unit: "Tokens" },
-    { icon: <Users size={24} />, label: "Active Purifiers", value: "189", unit: "Users" },
-    { icon: <Trophy size={24} />, label: "Certificates", value: "458", unit: "NFTs" },
-    { icon: <Shield size={24} />, label: "Security Score", value: "100%", unit: "Safe" },
+    { icon: <Coins size={24} />, label: t('stats.totalPurged'), value: "1.2M", unit: t('stats.tokens') },
+    { icon: <Users size={24} />, label: t('stats.activePurifiers'), value: "189", unit: t('stats.users') },
+    { icon: <Trophy size={24} />, label: t('stats.certificates'), value: "458", unit: t('stats.nfts') },
+    { icon: <Shield size={24} />, label: t('stats.securityScore'), value: "100%", unit: t('stats.safe') },
   ];
 
-  // Simple wallet state management
-  const handleWalletConnect = () => {
-    setWalletConnected(true);
-  };
-
+  // =============================================
+  // NAVIGATION HANDLERS
+  // =============================================
   const handleGoToDashboard = () => {
-    window.location.href = '/dashboard';
+    router.push('/dashboard');
   };
 
-  // Fallback loading
+  const handleWhitepaperClick = () => {
+    router.push('/whitepaper');
+  };
+
+  // =============================================
+  // WALLET MODAL HANDLER
+  // =============================================
+  const handleLaunchAppClick = () => {
+    if (connected) {
+      handleGoToDashboard();
+    } else {
+      // Trigger wallet connection modal dengan approach yang lebih robust
+      const walletButtons = document.querySelectorAll('.wallet-adapter-button');
+      if (walletButtons.length > 0) {
+        // Gunakan button pertama yang ditemukan
+        const walletButton = walletButtons[0] as HTMLButtonElement;
+        if (walletButton && typeof walletButton.click === 'function') {
+          walletButton.click();
+        }
+      } else {
+        // Fallback: coba cari button dengan attribute tertentu
+        const fallbackWalletButton = document.querySelector('button[data-wallet-adapter]') as HTMLButtonElement;
+        if (fallbackWalletButton && typeof fallbackWalletButton.click === 'function') {
+          fallbackWalletButton.click();
+        }
+      }
+    }
+  };
+
+  // =============================================
+  // LOADING FALLBACK UI
+  // =============================================
   if (!isClient) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#03150f] via-[#09261f] to-[#010a07] text-white flex items-center justify-center">
@@ -51,11 +180,16 @@ export default function PurifyLanding() {
     );
   }
 
+  // =============================================
+  // MAIN COMPONENT RENDER
+  // =============================================
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-[#03150f] via-[#09261f] to-[#010a07] text-white overflow-hidden font-sans">
       
-      {/* Background Particles */}
-      <div className="absolute inset-0 overflow-hidden">
+      {/* ============================================= */}
+      {/* BACKGROUND PARTICLES ANIMATION */}
+      {/* ============================================= */}
+      <div className="Absolute inset-0 overflow-hidden">
         {fixedParticles.map((particle) => (
           <motion.div
             key={particle.id}
@@ -79,34 +213,82 @@ export default function PurifyLanding() {
         ))}
       </div>
 
-      {/* Header */}
+      {/* ============================================= */}
+      {/* HEADER SECTION WITH NAVIGATION */}
+      {/* ============================================= */}
       <motion.header 
         className="relative z-20 border-b border-emerald-800/30 bg-[#03150f]/80 backdrop-blur-sm"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="container mx-auto px-6 py-4">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
-            <PurifyLogo />
             
-            {/* Simple Wallet Button - No useWallet hook */}
-            <div className="wallet-button-container">
+            {/* Logo Section - Left Side */}
+            <ImageLogo />
+            
+            {/* Navigation & Actions - Right Side */}
+            <div className="flex items-center space-x-3">
+              
+              {/* Desktop Navigation Links */}
+              <nav className="hidden md:flex items-center space-x-6 mr-4">
+                <Link 
+                  href="/whitepaper" 
+                  className="text-gray-300 hover:text-emerald-400 transition-colors duration-200 flex items-center space-x-1"
+                >
+                  <FileText size={16} />
+                  <span>{t('nav.whitepaper')}</span>
+                </Link>
+                <Link 
+                  href="/docs" 
+                  className="text-gray-300 hover:text-emerald-400 transition-colors duration-200"
+                >
+                  {t('nav.docs')}
+                </Link>
+                <Link 
+                  href="/about" 
+                  className="text-gray-300 hover:text-emerald-400 transition-colors duration-200"
+                >
+                  {t('nav.about')}
+                </Link>
+              </nav>
+
+              {/* Language Switcher */}
+              <LanguageSwitcher />
+
+              {/* Dashboard Button (Visible when wallet connected) */}
+              {connected && (
+                <motion.button
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleGoToDashboard}
+                >
+                  {t('nav.dashboard')}
+                </motion.button>
+              )}
+              
+              {/* Wallet Connection Button */}
               <WalletMultiButton 
-                className="!bg-emerald-600 hover:!bg-emerald-700 !text-white !px-6 !py-2 !rounded-lg !transition-colors !duration-200"
+                className="!bg-emerald-600 hover:!bg-emerald-700 !text-white !px-4 !py-2 !rounded-lg !transition-colors !duration-200 !text-sm"
               />
             </div>
           </div>
         </div>
       </motion.header>
 
-      {/* Hero Section */}
+      {/* ============================================= */}
+      {/* HERO SECTION - MAIN LANDING CONTENT */}
+      {/* ============================================= */}
       <motion.section
         className="relative flex flex-col items-center justify-center text-center py-32 px-6 z-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
+        
+        {/* Main Title with Animation */}
         <motion.div
           className="relative"
           initial={{ opacity: 0, y: 40 }}
@@ -114,9 +296,10 @@ export default function PurifyLanding() {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <h1 className="text-6xl md:text-7xl font-extrabold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-lg mb-6">
-            Purify the Blockchain.
+            {t('hero.title')}
           </h1>
 
+          {/* Decorative Sparkles Icon */}
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -127,17 +310,19 @@ export default function PurifyLanding() {
           </motion.div>
         </motion.div>
 
+        {/* Hero Subtitle */}
         <motion.p
           className="max-w-2xl text-gray-300 text-lg mb-12"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
-          Mengubah token rusak menjadi nilai murni. <br />
-          Protokol hijau pertama di Solana untuk ekosistem yang bersih dan berkelanjutan.
+          {t('hero.subtitle')}
         </motion.p>
 
-        {/* Stats */}
+        {/* ============================================= */}
+        {/* PROTOCOL STATISTICS GRID */}
+        {/* ============================================= */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 max-w-4xl mx-auto">
           {protocolStats.map((stat, index) => (
             <motion.div
@@ -148,6 +333,7 @@ export default function PurifyLanding() {
               transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
               whileHover={{ scale: 1.05, y: -5 }}
             >
+              {/* Stat Icon with Hover Animation */}
               <div className="text-emerald-400 mb-2 flex justify-center">
                 <motion.div
                   whileHover={{ rotate: 360, scale: 1.2 }}
@@ -156,6 +342,8 @@ export default function PurifyLanding() {
                   {stat.icon}
                 </motion.div>
               </div>
+              
+              {/* Stat Value and Labels */}
               <div className="text-2xl font-bold text-white">{stat.value}</div>
               <div className="text-sm text-gray-400">{stat.label}</div>
               <div className="text-xs text-emerald-400">{stat.unit}</div>
@@ -163,39 +351,52 @@ export default function PurifyLanding() {
           ))}
         </div>
 
-        {/* Buttons - Simplified tanpa wallet state */}
-        <div className="flex gap-4">
+        {/* ============================================= */}
+        {/* CALL-TO-ACTION BUTTONS */}
+        {/* ============================================= */}
+        <div className="flex gap-4 flex-wrap justify-center">
+          
+          {/* Main CTA Button - Launch App / Go to Dashboard */}
           <motion.button 
             className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-full text-lg shadow-lg shadow-emerald-500/30 transition-all duration-200 flex items-center space-x-2"
             whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(16, 185, 129, 0.6)" }}
             whileTap={{ scale: 0.95 }}
+            onClick={handleLaunchAppClick}
           >
             <Zap size={20} />
-            <span>Launch Purify App</span>
+            <span>{connected ? t('hero.goToDashboard') : t('hero.launchApp')}</span>
           </motion.button>
           
+          {/* Secondary CTA Button - Whitepaper */}
           <motion.button 
-            className="bg-transparent border border-emerald-400 text-emerald-300 hover:bg-emerald-400/10 px-8 py-3 rounded-full text-lg transition-all duration-200"
+            className="bg-transparent border border-emerald-400 text-emerald-300 hover:bg-emerald-400/10 px-8 py-3 rounded-full text-lg transition-all duration-200 flex items-center space-x-2"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={handleWhitepaperClick}
           >
-            Read Whitepaper
+            <FileText size={20} />
+            <span>{t('hero.readWhitepaper')}</span>
           </motion.button>
         </div>
       </motion.section>
 
-      {/* How It Works Section */}
+      {/* ============================================= */}
+      {/* HOW IT WORKS SECTION */}
+      {/* ============================================= */}
       <section className="py-24 px-6 text-center z-10 relative">
-        <h2 className="text-4xl font-bold text-emerald-400 mb-4">How Purify Works</h2>
+        
+        {/* Section Header */}
+        <h2 className="text-4xl font-bold text-emerald-400 mb-4">{t('howItWorks.title')}</h2>
         <p className="text-gray-400 mb-12 max-w-2xl mx-auto">
-          Protokol DeFi pertama yang mendaur ulang token rug menjadi nilai yang berguna
+          {t('howItWorks.subtitle')}
         </p>
         
+        {/* Process Steps Grid */}
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {[
-            { icon: <Leaf size={40} />, title: "Deposit Dead Tokens", desc: "Kirim token rug/scam ke Vault Purify yang aman" },
-            { icon: <Zap size={40} />, title: "Automatic Recycling", desc: "Protokol mendaur ulang token menjadi PURE tokens" },
-            { icon: <Globe2 size={40} />, title: "Earn Rewards", desc: "Dapatkan PURE tokens + Exclusive NFT Certificate" },
+            { icon: <Leaf size={40} />, title: t('howItWorks.step1.title'), desc: t('howItWorks.step1.desc') },
+            { icon: <Zap size={40} />, title: t('howItWorks.step2.title'), desc: t('howItWorks.step2.desc') },
+            { icon: <Globe2 size={40} />, title: t('howItWorks.step3.title'), desc: t('howItWorks.step3.desc') },
           ].map((step, i) => (
             <motion.div
               key={i}
@@ -206,7 +407,10 @@ export default function PurifyLanding() {
               viewport={{ once: true }}
               whileHover={{ scale: 1.05, y: -5 }}
             >
+              {/* Step Icon */}
               <div className="text-emerald-400 mb-4 flex justify-center">{step.icon}</div>
+              
+              {/* Step Title & Description */}
               <h3 className="text-xl font-semibold mb-2 text-white">{step.title}</h3>
               <p className="text-gray-400">{step.desc}</p>
             </motion.div>
@@ -214,33 +418,86 @@ export default function PurifyLanding() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* ============================================= */}
+      {/* CALL-TO-ACTION SECTION */}
+      {/* ============================================= */}
       <section className="py-20 bg-gradient-to-r from-emerald-900/30 to-cyan-900/30 border-y border-emerald-700/30">
         <div className="container mx-auto px-6 text-center">
+          
+          {/* CTA Title */}
           <h2 className="text-3xl font-bold text-emerald-400 mb-4">
-            Ready to Clean the Blockchain?
+            {t('cta.title')}
           </h2>
           
+          {/* CTA Subtitle */}
           <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-            Join thousands of users already purifying the Solana ecosystem
+            {t('cta.subtitle')}
           </p>
           
-          <div className="flex gap-4 justify-center">
+          {/* CTA Buttons */}
+          <div className="flex gap-4 justify-center flex-wrap">
+            
+            {/* Wallet Connection CTA */}
             <WalletMultiButton 
               className="!bg-gradient-to-r !from-emerald-500 !to-cyan-500 !text-white !px-8 !py-4 !rounded-full !text-lg !font-semibold !shadow-lg"
             />
+            
+            {/* Learn More CTA */}
+            <motion.button 
+              className="bg-transparent border border-emerald-400 text-emerald-300 hover:bg-emerald-400/10 px-6 py-4 rounded-full text-lg transition-all duration-200 flex items-center space-x-2"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleWhitepaperClick}
+            >
+              <FileText size={20} />
+              <span>{t('cta.learnMore')}</span>
+            </motion.button>
           </div>
         </div>
       </section>
 
-      <footer className="py-10 text-center text-sm text-gray-500 border-t border-emerald-800/30 bg-[#03150f]">
+      {/* ============================================= */}
+      {/* FOOTER SECTION */}
+      {/* ============================================= */}
+      <footer className="py-12 text-center text-sm text-gray-500 border-t border-emerald-800/30 bg-[#03150f] relative z-10">
         <div className="container mx-auto px-6">
-          <p className="mb-4">Purify Protocol (PURE) — The Green Blockchain Recycling Protocol</p>
-          <div className="flex justify-center space-x-6 text-xs">
-            <span>📍 Live on DevNet</span>
-            <span>🔐 Audited</span>
-            <span>🔄 v1.0.0</span>
-            <span>🌱 Carbon Neutral</span>
+          
+          {/* Footer Content Layout */}
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            
+            {/* Left Section - Protocol Info */}
+            <div className="text-left">
+              <p className="text-emerald-400 font-semibold mb-2">{t('footer.tagline')}</p>
+              <div className="flex flex-wrap justify-center md:justify-start space-x-4 text-xs">
+                <span>📍 {t('footer.live')}</span>
+                <span>🔐 {t('footer.audited')}</span>
+                <span>🔄 {t('footer.version')}</span>
+                <span>🌱 {t('footer.carbonNeutral')}</span>
+              </div>
+            </div>
+            
+            {/* Right Section - Footer Links */}
+            <div className="flex space-x-6">
+              <Link href="/whitepaper" className="text-emerald-400 hover:text-emerald-300 transition-colors">
+                {t('nav.whitepaper')}
+              </Link>
+              <Link href="/docs" className="text-emerald-400 hover:text-emerald-300 transition-colors">
+                {t('nav.docs')}
+              </Link>
+              <Link href="/about" className="text-emerald-400 hover:text-emerald-300 transition-colors">
+                {t('nav.about')}
+              </Link>
+            </div>
+          </div>
+          
+          {/* Copyright Notice */}
+          <div className="mt-6 pt-6 border-t border-emerald-800/20">
+            <p className="text-xs text-gray-600">
+              {locale === 'id' 
+                ? '© 2025 Purify Protocol. Semua hak dilindungi.'
+                : '© 2025 Purify Protocol. All rights reserved.'
+              }
+            </p>
           </div>
         </div>
       </footer>
