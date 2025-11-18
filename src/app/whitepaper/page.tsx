@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactElement } from "react";
 import { 
   FileText, 
   Download, 
@@ -571,7 +571,13 @@ const whitepaperContent = {
 };
 
 // Type definitions for better type safety
-type WhitepaperSection = {
+interface ResourceItem {
+  icon: ReactElement;
+  label: string;
+  value: string;
+}
+
+interface WhitepaperSection {
   abstract: {
     title: string;
     content: string;
@@ -679,14 +685,10 @@ type WhitepaperSection = {
   };
   contact: {
     title: string;
-    resources: Array<{
-      icon: JSX.Element;
-      label: string;
-      value: string;
-    }>;
+    resources: ResourceItem[];
     disclaimer: string;
   };
-};
+}
 
 export default function WhitepaperPage() {
   const [isClient, setIsClient] = useState(false);
@@ -1240,4 +1242,4 @@ export default function WhitepaperPage() {
       </div>
     </div>
   );
-  }
+                }
