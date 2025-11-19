@@ -9,7 +9,11 @@ export const locales: Locale[] = ['en', 'id'];
 export const translations = {
   en: {
     // Navigation
+<<<<<<< HEAD
     'nav.home': 'Home',
+=======
+    'nav.home': 'Home',  // <- TAMBAH INI
+>>>>>>> d75abbd (update struktur folder)
     'nav.whitepaper': 'Whitepaper',
     'nav.docs': 'Documentation',
     'nav.about': 'About',
@@ -78,7 +82,11 @@ export const translations = {
   },
   id: {
     // Navigation
+<<<<<<< HEAD
     'nav.home': 'Beranda',
+=======
+    'nav.home': 'Beranda',  // <- TAMBAH INI
+>>>>>>> d75abbd (update struktur folder)
     'nav.whitepaper': 'Whitepaper',
     'nav.docs': 'Dokumentasi',
     'nav.about': 'Tentang',

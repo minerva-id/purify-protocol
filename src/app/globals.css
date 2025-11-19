@@ -3,6 +3,17 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Wallet Adapter Button Theme */
+  --wallet-adapter-button-height: 48px;
+  --wallet-adapter-button-border-radius: 9999px; /* rounded-full */
+  --wallet-adapter-button-padding: 0 32px; /* px-8 */
+  --wallet-adapter-button-font-size: 1.125rem; /* text-lg */
+  --wallet-adapter-button-font-weight: 600;
+  --wallet-adapter-button-background: #10b981; /* emerald-500 */
+  --wallet-adapter-button-background-hover: #059669; /* emerald-600 */
+  --wallet-adapter-button-text-color: #ffffff;
+  --wallet-adapter-button-box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3), 0 4px 6px -4px rgba(16, 185, 129, 0.25);
 }
 
 @theme inline {
@@ -16,6 +27,9 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    /* Dark mode can keep same wallet styles */
+    --wallet-adapter-button-text-color: #ffffff;
   }
 }
 
