@@ -2,7 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslations } from '@/lib/i18n';
 import { 
@@ -235,55 +235,12 @@ export default function AboutPage() {
             
             {/* Navigation & Actions - Right Side */}
             <div className="flex items-center space-x-3">
-<<<<<<< HEAD
-              
-              {/* Desktop Navigation Links */}
-              <nav className="hidden md:flex items-center space-x-6 mr-4">
-                <Link 
-                  href="/" 
-                  className="text-gray-300 hover:text-emerald-400 transition-colors duration-200"
-                >
-                  {t('nav.home')}
-                </Link>
-                <Link 
-                  href="/whitepaper" 
-                  className="text-gray-300 hover:text-emerald-400 transition-colors duration-200 flex items-center space-x-1"
-                >
-                  <FileText size={16} />
-                  <span>{t('nav.whitepaper')}</span>
-                </Link>
-                <Link 
-                  href="/about" 
-                  className="text-emerald-400 border-b-2 border-emerald-400 transition-colors duration-200"
-                >
-                  {t('nav.about')}
-                </Link>
-                <Link 
-                  href="/docs" 
-                  className="text-gray-300 hover:text-emerald-400 transition-colors duration-200"
-                >
-                  {t('nav.docs')}
-                </Link>
-              </nav>
-
-              {/* Language Switcher */}
-              <LanguageSwitcher />
-
-              {/* Dashboard Button (Visible when wallet connected) */}
-              {connected && (
-                <Link href="/dashboard">
-                  <motion.button
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-=======
               <div className="hidden md:flex items-center space-x-3">
                 {/* Desktop Navigation Links */}
                 <nav className="hidden md:flex items-center space-x-6 mr-4">
                   <Link 
                     href="/" 
                     className="text-gray-300 hover:text-emerald-400 transition-colors duration-200"
->>>>>>> d75abbd (update struktur folder)
                   >
                     {t('nav.home')}
                   </Link>
