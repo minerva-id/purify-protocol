@@ -4,26 +4,31 @@ import { useState } from 'react';
 import { usePurifyProgram } from '@/hooks/usePurifyProgram';
 import { PublicKey } from '@solana/web3.js';
 import { motion } from 'framer-motion';
+import { useNotification } from '@/contexts/NotificationContext';
+import { LoadingButton } from '@/components/common/LoadingButton';
 
 export default function TokenDeposit() {
   const { programId, wallet, connection, Transaction, createDepositInstruction } = usePurifyProgram();
+  const { success, error, info } = useNotification();
   const [amount, setAmount] = useState('');
   const [vaultName, setVaultName] = useState('plastic-waste');
   const [isLoading, setIsLoading] = useState(false);
 
   const depositTokens = async () => {
     if (!wallet.connected || !wallet.publicKey || !wallet.sendTransaction) {
-      alert('Please connect wallet first');
+      error('Wallet Not Connected', 'Please connect your wallet first');
       return;
     }
 
     const depositAmount = parseFloat(amount);
     if (isNaN(depositAmount) || depositAmount <= 0) {
-      alert('Please enter a valid amount');
+      error('Invalid Amount', 'Please enter a valid amount greater than 0');
       return;
     }
 
     setIsLoading(true);
+    info('Preparing Transaction', 'Creating deposit instruction...');
+
     try {
       console.log('🔥 Depositing tokens...', {
         amount: depositAmount,
@@ -41,7 +46,7 @@ export default function TokenDeposit() {
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = wallet.publicKey;
 
-      console.log('📤 Sending deposit transaction...');
+      info('Sending Transaction', 'Please approve the transaction in your wallet...');
       
       // Send transaction
       const signature = await wallet.sendTransaction(transaction, connection, {
@@ -51,18 +56,39 @@ export default function TokenDeposit() {
       
       console.log('✅ Deposit transaction submitted! Signature:', signature);
       
-      alert(`🔥 Successfully deposited ${depositAmount} SOL!\n\n✅ Transaction: ${signature}\n\n🔍 View on Explorer: https://explorer.solana.com/tx/${signature}?cluster=devnet\n\n🌱 Tokens burned to create scarcity!`);
+      info('Confirming Transaction', 'Waiting for blockchain confirmation...');
+      
+      // Wait for confirmation
+      await connection.confirmTransaction(signature, 'confirmed');
+      
+      success(
+        'Tokens Deposited Successfully!',
+        `${depositAmount} tokens deposited to ${vaultName} vault`,
+        8000
+      );
+      
+      // Add action to view on explorer
+      setTimeout(() => {
+        success(
+          'Transaction Confirmed',
+          `View on Explorer: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
+          10000
+        );
+      }, 1000);
       
       setAmount('');
 
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
       console.error('❌ Deposit failed:', message);
 
-      if (message.includes('User rejected')) {
-        alert('❌ Transaction was rejected by user');
+      if (message.includes('User rejected') || message.includes('User cancelled')) {
+        error('Transaction Cancelled', 'You rejected the transaction');
       } else {
-        alert(`❌ Failed to deposit tokens: ${message}\n\nMake sure you have enough SOL and the vault exists.`);
+        error(
+          'Deposit Failed',
+          message.length > 100 ? `${message.substring(0, 100)}...` : message
+        );
       }
     } finally {
       setIsLoading(false);
@@ -112,25 +138,16 @@ export default function TokenDeposit() {
           />
         </div>
         
-        <motion.button
+        <LoadingButton
+          isLoading={isLoading}
           onClick={depositTokens}
-          disabled={isLoading || !amount}
-          className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
-          whileHover={{ scale: isLoading ? 1 : 1.02 }}
-          whileTap={{ scale: isLoading ? 1 : 0.98 }}
+          disabled={!amount}
+          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3"
+          loadingText="Purging Tokens..."
         >
-          {isLoading ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span>Purging Tokens...</span>
-            </>
-          ) : (
-            <>
-              <span className="text-lg">🔥</span>
-              <span>Purge Tokens</span>
-            </>
-          )}
-        </motion.button>
+          <span className="text-lg">🔥</span>
+          <span>Purge Tokens</span>
+        </LoadingButton>
         
         <div className="text-xs text-orange-300 space-y-1">
           <p>💡 Burning tokens increases scarcity</p>

@@ -42,13 +42,6 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-4">
             <nav className="flex items-center space-x-6 mr-4">
               <Link
-                href="/"
-                className={`${isActive('/') ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-gray-300 hover:text-emerald-400'} transition-colors duration-200`}
-              >
-                {t('nav.home')}
-              </Link>
-
-              <Link
                 href="/whitepaper"
                 className={`${isActive('/whitepaper') ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-gray-300 hover:text-emerald-400'} transition-colors duration-200 flex items-center space-x-1`}
               >
@@ -69,6 +62,23 @@ export default function Header() {
               >
                 {t('nav.docs')}
               </Link>
+
+              {connected && (
+                <>
+                  <Link
+                    href="/analytics"
+                    className={`${isActive('/analytics') ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-gray-300 hover:text-emerald-400'} transition-colors duration-200`}
+                  >
+                    {t('nav.analytics')}
+                  </Link>
+                  <Link
+                    href="/governance"
+                    className={`${isActive('/governance') ? 'text-emerald-400 border-b-2 border-emerald-400' : 'text-gray-300 hover:text-emerald-400'} transition-colors duration-200`}
+                  >
+                    {t('nav.governance')}
+                  </Link>
+                </>
+              )}
             </nav>
 
             <LanguageSwitcher />
@@ -105,14 +115,6 @@ export default function Header() {
           <div className="md:hidden mt-4 border-t border-emerald-800/30 pt-4">
             <nav className="flex flex-col space-y-3 mb-4">
               <Link
-                href="/"
-                onClick={() => setMobileOpen(false)}
-                className={`${isActive('/') ? 'text-emerald-400' : 'text-gray-300 hover:text-emerald-400'} transition-colors py-2`}
-              >
-                {t('nav.home')}
-              </Link>
-
-              <Link
                 href="/whitepaper"
                 onClick={() => setMobileOpen(false)}
                 className={`${isActive('/whitepaper') ? 'text-emerald-400' : 'text-gray-300 hover:text-emerald-400'} transition-colors py-2 flex items-center space-x-2`}
@@ -136,6 +138,25 @@ export default function Header() {
               >
                 {t('nav.about')}
               </Link>
+
+              {connected && (
+                <>
+                  <Link
+                    href="/analytics"
+                    onClick={() => setMobileOpen(false)}
+                    className={`${isActive('/analytics') ? 'text-emerald-400' : 'text-gray-300 hover:text-emerald-400'} py-2`}
+                  >
+                    {t('nav.analytics')}
+                  </Link>
+                  <Link
+                    href="/governance"
+                    onClick={() => setMobileOpen(false)}
+                    className={`${isActive('/governance') ? 'text-emerald-400' : 'text-gray-300 hover:text-emerald-400'} py-2`}
+                  >
+                    {t('nav.governance')}
+                  </Link>
+                </>
+              )}
             </nav>
             
               <div className="flex flex-col space-y-3">

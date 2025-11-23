@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { WalletProviders } from '@/contexts/WalletContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { NotificationProvider } from '@/contexts/NotificationContext';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import Header from '@/components/common/Header';
 
 // Import wallet adapter CSS
@@ -24,12 +26,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <LanguageProvider>
-          <WalletProviders>
-            <Header />
-            {children}
-          </WalletProviders>
-        </LanguageProvider>
+        <ErrorBoundary>
+          <LanguageProvider>
+            <WalletProviders>
+              <NotificationProvider>
+                <Header />
+                {children}
+              </NotificationProvider>
+            </WalletProviders>
+          </LanguageProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

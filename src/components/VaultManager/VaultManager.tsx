@@ -5,19 +5,27 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { usePurifyProgram } from '../../utils/program';
 import { initializeVault } from '../../utils/transactions';
 import { PURIFY_PROGRAM_ID } from '../../utils/constants';
+import { useNotification } from '@/contexts/NotificationContext';
+import { LoadingButton } from '@/components/common/LoadingButton';
 
 export const VaultManager: React.FC = () => {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const { getProgram } = usePurifyProgram();
+  const { success, error, info } = useNotification();
   const [mintAddress, setMintAddress] = useState('');
   const [metadataUri, setMetadataUri] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCreateVault = async () => {
-    if (!publicKey || !mintAddress) return;
+    if (!publicKey || !mintAddress) {
+      error('Missing Information', 'Please provide a mint address');
+      return;
+    }
 
     setIsLoading(true);
+    info('Preparing Vault', 'Validating mint address and creating vault...');
+
     try {
       const mint = new PublicKey(mintAddress);
 
@@ -36,6 +44,8 @@ export const VaultManager: React.FC = () => {
         authority: publicKey.toString()
       });
 
+      info('Creating Transaction', 'Please approve the transaction in your wallet...');
+
       const instruction = await initializeVault(program, mint, publicKey, metadataUri);
       
       const transaction = new Transaction().add(instruction);
@@ -45,6 +55,8 @@ export const VaultManager: React.FC = () => {
       console.log('📤 Sending transaction...');
       const signature = await sendTransaction(transaction, connection);
       
+      info('Confirming Transaction', 'Waiting for blockchain confirmation...');
+      
       console.log('⏳ Confirming transaction...');
       const confirmation = await connection.confirmTransaction(signature, 'confirmed');
       
@@ -52,13 +64,37 @@ export const VaultManager: React.FC = () => {
         throw new Error(`Transaction failed: ${confirmation.value.err}`);
       }
       
-      alert(`✅ Vault initialized successfully!\n\n📍 Mint: ${mint.toString()}\n🏦 Vault State: ${vaultState.toString()}\n📝 Signature: ${signature}`);
+      success(
+        'Vault Initialized Successfully!',
+        `Vault created for mint: ${mint.toString().slice(0, 8)}...${mint.toString().slice(-8)}`,
+        8000
+      );
+
+      setTimeout(() => {
+        success(
+          'Transaction Confirmed',
+          `View on Explorer: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
+          10000
+        );
+      }, 1000);
+      
       setMintAddress('');
       setMetadataUri('');
       
-    } catch (error) {
-      console.error('❌ Error initializing vault:', error);
-      alert(`❌ Failed to initialize vault: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } catch (err) {
+      console.error('❌ Error initializing vault:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      
+      if (errorMessage.includes('User rejected') || errorMessage.includes('User cancelled')) {
+        error('Transaction Cancelled', 'You rejected the transaction');
+      } else if (errorMessage.includes('Invalid')) {
+        error('Invalid Mint Address', 'Please check the mint address format');
+      } else {
+        error(
+          'Vault Initialization Failed',
+          errorMessage.length > 100 ? `${errorMessage.substring(0, 100)}...` : errorMessage
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -102,14 +138,15 @@ export const VaultManager: React.FC = () => {
           />
         </div>
 
-        <button
+        <LoadingButton
           onClick={handleCreateVault}
-          disabled={!publicKey || !mintAddress || isLoading}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
-          aria-busy={isLoading}
+          disabled={!publicKey || !mintAddress}
+          isLoading={isLoading}
+          className="w-full py-3"
+          loadingText="Initializing Vault..."
         >
-          {isLoading ? '🔄 Initializing...' : '🏗️ Initialize Vault'}
-        </button>
+          🏗️ Initialize Vault
+        </LoadingButton>
       </div>
 
       {mintAddress && publicKey && (

@@ -124,6 +124,20 @@ export const findCertificateMintAddress = (mint: PublicKey, user: PublicKey): [P
   );
 };
 
+export const findProtocolConfigAddress = (): [PublicKey, number] => {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('protocol_config')],
+    PURIFY_PROGRAM_ID
+  );
+};
+
+export const findBurnProposalAddress = (vaultState: PublicKey, proposer: PublicKey): [PublicKey, number] => {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('burn_proposal'), vaultState.toBuffer(), proposer.toBuffer()],
+    PURIFY_PROGRAM_ID
+  );
+};
+
 // Helper functions (tetap sama)
 export const getAssociatedTokenAddress = async (
   mint: PublicKey,

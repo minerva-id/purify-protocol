@@ -14,6 +14,8 @@ export const translations = {
     'nav.docs': 'Documentation',
     'nav.about': 'About',
     'nav.dashboard': 'Dashboard',
+    'nav.analytics': 'Analytics',
+    'nav.governance': 'Governance',
 
     // Hero Section
     'hero.title': 'Purify the Blockchain.',
@@ -83,6 +85,8 @@ export const translations = {
     'nav.docs': 'Dokumentasi',
     'nav.about': 'Tentang',
     'nav.dashboard': 'Dashboard',
+    'nav.analytics': 'Analitik',
+    'nav.governance': 'Governance',
 
     // Hero Section
     'hero.title': 'Pembersihan Blockchain.',

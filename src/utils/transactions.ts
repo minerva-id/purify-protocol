@@ -6,6 +6,8 @@ import {
   findVaultAuthorityAddress, 
   findUserContributionAddress,
   findCertificateMintAddress,
+  findProtocolConfigAddress,
+  findBurnProposalAddress,
   getAssociatedTokenAddress,
   getMetadataAddress
 } from './program';
@@ -146,4 +148,128 @@ export const mintCertificate = async (
 ) => {
   console.log('[mintCertificate] Function not implemented yet');
   throw new Error('Certificate minting not implemented yet');
+};
+
+// Governance functions
+export const createBurnProposal = async (
+  program: Program<Idl>,
+  vaultState: PublicKey,
+  proposer: PublicKey,
+  amount: number
+) => {
+  try {
+    console.log('[createBurnProposal] Starting with:', {
+      vaultState: vaultState.toString(),
+      proposer: proposer.toString(),
+      amount
+    });
+
+    const [proposal] = findBurnProposalAddress(vaultState, proposer);
+    const [config] = findProtocolConfigAddress();
+
+    const amountInBaseUnits = new BN(amount * Math.pow(10, 9));
+
+    const instruction = await program.methods
+      .createBurnProposal(amountInBaseUnits)
+      .accounts({
+        proposal,
+        vaultState,
+        config,
+        proposer,
+        systemProgram: SystemProgram.programId,
+      })
+      .instruction();
+
+    console.log('[createBurnProposal] Instruction created successfully');
+    return instruction;
+  } catch (error) {
+    console.error('[createBurnProposal] Error creating instruction:', error);
+    throw error;
+  }
+};
+
+export const voteOnProposal = async (
+  program: Program<Idl>,
+  vaultState: PublicKey,
+  proposer: PublicKey,
+  voter: PublicKey
+) => {
+  try {
+    console.log('[voteOnProposal] Starting with:', {
+      vaultState: vaultState.toString(),
+      proposer: proposer.toString(),
+      voter: voter.toString()
+    });
+
+    const [proposal] = findBurnProposalAddress(vaultState, proposer);
+
+    const instruction = await program.methods
+      .voteOnProposal()
+      .accounts({
+        proposal,
+        vaultState,
+        voter,
+      })
+      .instruction();
+
+    console.log('[voteOnProposal] Instruction created successfully');
+    return instruction;
+  } catch (error) {
+    console.error('[voteOnProposal] Error creating instruction:', error);
+    throw error;
+  }
+};
+
+export const executeBurnProposal = async (
+  program: Program<Idl>,
+  mint: PublicKey,
+  vaultState: PublicKey,
+  proposer: PublicKey,
+  feeRecipient?: PublicKey
+) => {
+  try {
+    console.log('[executeBurnProposal] Starting with:', {
+      mint: mint.toString(),
+      vaultState: vaultState.toString(),
+      proposer: proposer.toString()
+    });
+
+    const [proposal] = findBurnProposalAddress(vaultState, proposer);
+    const [config] = findProtocolConfigAddress();
+    const [vaultAuthority] = findVaultAuthorityAddress(mint);
+
+    const vaultAta = await getAssociatedTokenAddress(mint, vaultAuthority, true);
+    
+    // Fetch config to get fee recipient if not provided
+    let feeRecipientAta: PublicKey | undefined;
+    if (feeRecipient) {
+      feeRecipientAta = await getAssociatedTokenAddress(mint, feeRecipient);
+    }
+
+    const accounts: any = {
+      proposal,
+      vaultState,
+      config,
+      mint,
+      vaultAta,
+      vaultAuthority,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+    };
+
+    if (feeRecipientAta) {
+      accounts.feeRecipientAta = feeRecipientAta;
+    }
+
+    const instruction = await program.methods
+      .executeBurnProposal()
+      .accounts(accounts)
+      .instruction();
+
+    console.log('[executeBurnProposal] Instruction created successfully');
+    return instruction;
+  } catch (error) {
+    console.error('[executeBurnProposal] Error creating instruction:', error);
+    throw error;
+  }
 };

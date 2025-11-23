@@ -4,25 +4,30 @@ import { useState } from 'react';
 import { usePurifyProgram } from '@/hooks/usePurifyProgram';
 import { PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 import { motion } from 'framer-motion';
+import { useNotification } from '@/contexts/NotificationContext';
+import { LoadingButton } from '@/components/common/LoadingButton';
 
 export default function CertificateMinting() {
   const { programId, wallet, connection, Transaction } = usePurifyProgram();
+  const { success, error, info } = useNotification();
   const [vaultName, setVaultName] = useState('plastic-waste');
   const [isLoading, setIsLoading] = useState(false);
   const [certificateId, setCertificateId] = useState('');
 
   const mintCertificate = async () => {
     if (!wallet.connected || !wallet.publicKey || !wallet.sendTransaction) {
-      alert('Please connect wallet first');
+      error('Wallet Not Connected', 'Please connect your wallet first');
       return;
     }
 
     setIsLoading(true);
+    info('Preparing Certificate', 'Generating certificate PDA...');
+
     try {
       // Generate PDA untuk certificate
-      const certificateId = `cert-${vaultName}-${Date.now()}`;
+      const certId = `cert-${vaultName}-${Date.now()}`;
       const [certificatePda] = PublicKey.findProgramAddressSync(
-        [Buffer.from('certificate'), Buffer.from(certificateId)],
+        [Buffer.from('certificate'), Buffer.from(certId)],
         programId
       );
 
@@ -32,15 +37,17 @@ export default function CertificateMinting() {
       );
 
       console.log('🎨 Minting certificate...', {
-        certificateId,
+        certificateId: certId,
         vault: vaultName,
         certificatePda: certificatePda.toString()
       });
 
+      info('Creating Transaction', 'Please approve the transaction in your wallet...');
+
       // Instruction data untuk mintCertificate (instruction discriminator biasanya 2)
       const instructionData = Buffer.concat([
         Buffer.from([2]), // mintCertificate instruction discriminator
-        Buffer.from(certificateId, 'utf-8'), // certificate ID
+        Buffer.from(certId, 'utf-8'), // certificate ID
         Buffer.from([0]), // null terminator
       ]);
 
@@ -68,15 +75,40 @@ export default function CertificateMinting() {
         maxRetries: 3
       });
       
+      info('Confirming Transaction', 'Waiting for blockchain confirmation...');
+      
+      await connection.confirmTransaction(signature, 'confirmed');
+      
       console.log('✅ Certificate minted! Signature:', signature);
       
-      setCertificateId(certificateId);
-      alert(`🎉 Environmental Certificate Minted!\n\n📜 Certificate ID: ${certificateId}\n✅ Transaction: ${signature}\n\n🔍 View on Explorer: https://explorer.solana.com/tx/${signature}?cluster=devnet`);
+      setCertificateId(certId);
+      
+      success(
+        'Certificate Minted Successfully!',
+        `Certificate ID: ${certId}`,
+        8000
+      );
 
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
+      setTimeout(() => {
+        success(
+          'Transaction Confirmed',
+          `View on Explorer: https://explorer.solana.com/tx/${signature}?cluster=devnet`,
+          10000
+        );
+      }, 1000);
+
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
       console.error('❌ Certificate minting failed:', message);
-      alert(`❌ Failed to mint certificate: ${message}`);
+      
+      if (message.includes('User rejected') || message.includes('User cancelled')) {
+        error('Transaction Cancelled', 'You rejected the transaction');
+      } else {
+        error(
+          'Certificate Minting Failed',
+          message.length > 100 ? `${message.substring(0, 100)}...` : message
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -112,25 +144,15 @@ export default function CertificateMinting() {
           </select>
         </div>
         
-        <motion.button
+        <LoadingButton
           onClick={mintCertificate}
-          disabled={isLoading}
-          className="w-full bg-purple-500 hover:bg-purple-600 disabled:bg-gray-600 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
-          whileHover={{ scale: isLoading ? 1 : 1.02 }}
-          whileTap={{ scale: isLoading ? 1 : 0.98 }}
+          isLoading={isLoading}
+          className="w-full bg-purple-500 hover:bg-purple-600 text-white py-3"
+          loadingText="Minting Certificate..."
         >
-          {isLoading ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span>Minting Certificate...</span>
-            </>
-          ) : (
-            <>
-              <span className="text-lg">📜</span>
-              <span>Mint Environmental Certificate</span>
-            </>
-          )}
-        </motion.button>
+          <span className="text-lg">📜</span>
+          <span>Mint Environmental Certificate</span>
+        </LoadingButton>
         
         {certificateId && (
           <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
