@@ -14,8 +14,9 @@ export default function TestConnection() {
 
     try {
       alert(`✅ Purify Protocol Ready!\n\nProgram: ${programId.toString()}\n\nWallet: ${wallet.publicKey?.toString().slice(0, 8)}...\n\nReady for real transactions!`);
-    } catch (error: any) {
-      alert(`❌ Connection failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      alert(`❌ Connection failed: ${message}`);
     }
   };
 

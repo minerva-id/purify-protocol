@@ -93,16 +93,14 @@ function LanguageSwitcher() {
 }
 
 export default function AboutPage() {
-  const [isClient, setIsClient] = useState(false);
+  const [isClient, setIsClient] = useState(() => typeof window !== 'undefined');
   const [mobileOpen, setMobileOpen] = useState(false);
   const { locale } = useLanguage();
   const { connected } = useWallet();
   const t = useTranslations(locale);
   const router = useRouter();
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  // client detection handled by initial state
 
   const teamMembers = [
     {

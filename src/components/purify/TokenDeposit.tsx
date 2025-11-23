@@ -55,13 +55,14 @@ export default function TokenDeposit() {
       
       setAmount('');
 
-    } catch (error: any) {
-      console.error('❌ Deposit failed:', error);
-      
-      if (error.message.includes('User rejected')) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('❌ Deposit failed:', message);
+
+      if (message.includes('User rejected')) {
         alert('❌ Transaction was rejected by user');
       } else {
-        alert(`❌ Failed to deposit tokens: ${error.message}\n\nMake sure you have enough SOL and the vault exists.`);
+        alert(`❌ Failed to deposit tokens: ${message}\n\nMake sure you have enough SOL and the vault exists.`);
       }
     } finally {
       setIsLoading(false);

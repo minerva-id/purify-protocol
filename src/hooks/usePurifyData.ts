@@ -7,7 +7,7 @@ const PURIFY_PROGRAM_ID = new PublicKey('6jpBQ4dMhWJbWWfDa2GhcNvokoqd98a2gKydEAi
 export const usePurifyData = () => {
   const { connection } = useConnection();
   const wallet = useWallet();
-  const [userVaults, setUserVaults] = useState<any[]>([]);
+  const [userVaults, setUserVaults] = useState<Array<{ name: string; deposited: number; certificates: number }>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

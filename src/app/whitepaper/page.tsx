@@ -593,16 +593,14 @@ const whitepaperContent = {
 };
 
 export default function WhitepaperPage() {
-  const [isClient, setIsClient] = useState(false);
+  const [isClient, setIsClient] = useState(() => typeof window !== 'undefined');
   const [mobileOpen, setMobileOpen] = useState(false);
   const { locale } = useLanguage();
   const { connected } = useWallet();
   const t = useTranslations(locale);
   const router = useRouter();
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  // client detection handled by initial state
 
   const handleDownloadPDF = () => {
   try {

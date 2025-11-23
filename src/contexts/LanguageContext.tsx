@@ -11,15 +11,15 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocale] = useState<Locale>(defaultLocale);
-
-  // Load saved language preference from localStorage
-  useEffect(() => {
-    const savedLocale = localStorage.getItem('purify-locale') as Locale;
-    if (savedLocale && ['en', 'id'].includes(savedLocale)) {
-      setLocale(savedLocale);
+  const [locale, setLocale] = useState<Locale>(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? (localStorage.getItem('purify-locale') as Locale | null) : null;
+      if (saved && ['en', 'id'].includes(saved)) return saved;
+    } catch {
+      // ignore errors reading localStorage
     }
-  }, []);
+    return defaultLocale;
+  });
 
   // Save language preference to localStorage when it changes
   useEffect(() => {

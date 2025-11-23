@@ -73,9 +73,10 @@ export default function CertificateMinting() {
       setCertificateId(certificateId);
       alert(`🎉 Environmental Certificate Minted!\n\n📜 Certificate ID: ${certificateId}\n✅ Transaction: ${signature}\n\n🔍 View on Explorer: https://explorer.solana.com/tx/${signature}?cluster=devnet`);
 
-    } catch (error: any) {
-      console.error('❌ Certificate minting failed:', error);
-      alert(`❌ Failed to mint certificate: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('❌ Certificate minting failed:', message);
+      alert(`❌ Failed to mint certificate: ${message}`);
     } finally {
       setIsLoading(false);
     }

@@ -28,17 +28,17 @@ export default function ImageLogo() {
       {/* Text */}
       <div className="text-left">
         <motion.h1
-          className="text-xl font-bold text-white"
+          className="text-emerald-400 flex justify-center items-center font-bold text-lg"
           whileHover={{ scale: 1.05 }}
         >
-          Purify
+          Purify Protocol
         </motion.h1>
         <motion.p
           className="text-xs text-blue-200 font-medium"
           initial={{ opacity: 0.8 }}
           whileHover={{ opacity: 1 }}
         >
-          Blockchain Cleaning
+          
         </motion.p>
       </div>
     </motion.div>

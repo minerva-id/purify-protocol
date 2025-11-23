@@ -111,7 +111,7 @@ export default function PurifyLanding() {
   // =============================================
   // STATE MANAGEMENT
   // =============================================
-  const [isClient, setIsClient] = useState(false);
+  const [isClient, setIsClient] = useState(() => typeof window !== 'undefined');
   const [mobileOpen, setMobileOpen] = useState(false);
   
   // =============================================
@@ -131,12 +131,7 @@ export default function PurifyLanding() {
   // =============================================
   const walletButtonRef = useRef<HTMLButtonElement>(null);
 
-  // =============================================
-  // USE EFFECT FOR CLIENT-SIDE DETECTION
-  // =============================================
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  // client detection handled by initial state
 
   // =============================================
   // PROTOCOL STATISTICS DATA

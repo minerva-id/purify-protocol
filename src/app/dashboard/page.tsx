@@ -7,7 +7,7 @@ import { Coins, Trophy, TrendingUp, Activity, Zap, Sparkles, Languages, Home, Me
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import ImageLogo from "@/components/common/ImageLogo";
-import VaultManager from "@/components/purify/VaultManager";
+import { VaultManager } from "@/components/VaultManager/VaultManager";
 import TokenDeposit from "@/components/purify/TokenDeposit";
 import TestConnection from "@/components/purify/TestConnection";
 import CertificateMinting from '@/components/purify/CertificateMinting';
@@ -109,7 +109,7 @@ const mockDashboardData = {
 };
 
 export default function DashboardPage() {
-  const [isClient, setIsClient] = useState(false);
+  const [isClient, setIsClient] = useState(() => typeof window !== 'undefined');
   const [activeTab, setActiveTab] = useState('portfolio');
   const [mobileOpen, setMobileOpen] = useState(false);
   const { locale } = useLanguage();
@@ -117,9 +117,7 @@ export default function DashboardPage() {
   const { connected, publicKey } = useWallet();
   const router = useRouter();
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  // client detection handled by initial state
 
   // ✅ ADD EFFECT UNTUK HANDLE WALLET DISCONNECT
   useEffect(() => {
@@ -481,7 +479,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <div className="font-semibold text-white capitalize">
-                          {dt(activity.type as any)} {activity.amount} {activity.token}
+                          {dt(activity.type as string)} {activity.amount} {activity.token}
                         </div>
                         <div className="text-gray-400 text-sm">{activity.date}</div>
                       </div>
