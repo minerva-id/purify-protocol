@@ -4,6 +4,7 @@ import { PublicKey, Transaction } from '@solana/web3.js';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { usePurifyProgram } from '../../utils/program';
 import { initializeVault } from '../../utils/transactions';
+import { PURIFY_PROGRAM_ID } from '../../utils/constants';
 
 export const VaultManager: React.FC = () => {
   const { connection } = useConnection();
@@ -18,13 +19,16 @@ export const VaultManager: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const program = getProgram();
       const mint = new PublicKey(mintAddress);
 
+      // Use constant program id for PDA derivation to avoid constructing Program just for a PDA
       const [vaultState] = PublicKey.findProgramAddressSync(
         [Buffer.from('vault'), mint.toBuffer()],
-        program.programId
+        PURIFY_PROGRAM_ID
       );
+
+      // Now construct program (may still fail but we postpone it until after PDAs are computed)
+      const program = getProgram();
 
       console.log('🏗️ Initializing vault for mint:', {
         mint: mint.toString(),
@@ -60,54 +64,61 @@ export const VaultManager: React.FC = () => {
     }
   };
 
+  // (removed dev-only diagnostics helper)
+
   return (
-    <div className="vault-manager">
-      <h2>🏦 Initialize Recycling Vault</h2>
-      <p className="description">
-        Create a new vault for a specific token. The vault will manage deposits, burns, and issue recycling certificates.
-      </p>
-      
-      <div className="vault-form">
-        <div className="form-group">
-          <label>Token Mint Address:</label>
+    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-emerald-500/20">
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h4 className="text-lg font-semibold text-emerald-400">🏦 Initialize Recycling Vault</h4>
+          <p className="text-sm text-gray-300 mt-1">Create a new vault for a specific token. The vault will manage deposits, burns, and issue recycling certificates.</p>
+        </div>
+      </div>
+
+      <div className="space-y-4 mb-4">
+        <div>
+          <label className="text-sm text-gray-300 block mb-1">Token Mint Address</label>
           <input
             type="text"
             value={mintAddress}
             onChange={(e) => setMintAddress(e.target.value)}
             placeholder="Enter the token mint address"
             disabled={isLoading}
-            className="vault-input"
+            className="w-full px-3 py-2 bg-black/20 border border-emerald-600/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-emerald-400"
+            aria-label="Token mint address"
           />
         </div>
-        
-        <div className="form-group">
-          <label>Vault Metadata URI (Optional):</label>
+
+        <div>
+          <label className="text-sm text-gray-300 block mb-1">Vault Metadata URI (Optional)</label>
           <input
             type="text"
             value={metadataUri}
             onChange={(e) => setMetadataUri(e.target.value)}
             placeholder="https://arweave.net/vault-metadata"
             disabled={isLoading}
-            className="vault-input"
+            className="w-full px-3 py-2 bg-black/20 border border-emerald-600/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-emerald-400"
+            aria-label="Vault metadata URI"
           />
         </div>
-        
-        <button 
+
+        <button
           onClick={handleCreateVault}
           disabled={!publicKey || !mintAddress || isLoading}
-          className="vault-button"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
+          aria-busy={isLoading}
         >
           {isLoading ? '🔄 Initializing...' : '🏗️ Initialize Vault'}
         </button>
       </div>
-      
+
       {mintAddress && publicKey && (
-        <div className="vault-preview">
-          <h4>🔍 Vault Preview:</h4>
-          <div className="preview-info">
-            <p><strong>Token Mint:</strong> {mintAddress.slice(0, 8)}...{mintAddress.slice(-8)}</p>
-            <p><strong>Authority:</strong> {publicKey.toString().slice(0, 8)}...{publicKey.toString().slice(-8)}</p>
-            <p><strong>Vault State:</strong> {
+        <div className="bg-black/20 border border-white/5 rounded-lg p-3 text-sm text-gray-200">
+          <h5 className="font-medium text-emerald-300 mb-2">🔍 Vault Preview</h5>
+          <div className="grid grid-cols-1 gap-1 text-xs">
+            <div><span className="font-semibold text-white">Token Mint:</span> {mintAddress.slice(0, 8)}...{mintAddress.slice(-8)}</div>
+            <div><span className="font-semibold text-white">Authority:</span> {publicKey.toString().slice(0, 8)}...{publicKey.toString().slice(-8)}</div>
+            <div><span className="font-semibold text-white">Vault State:</span> {
               (() => {
                 try {
                   const mint = new PublicKey(mintAddress);
@@ -120,15 +131,13 @@ export const VaultManager: React.FC = () => {
                   return 'Invalid mint address';
                 }
               })()
-            }</p>
+            }</div>
           </div>
         </div>
       )}
-      
+
       {!publicKey && (
-        <div className="wallet-warning">
-          🔗 Please connect your wallet to create a vault
-        </div>
+        <div className="mt-4 text-sm text-yellow-300">🔗 Please connect your wallet to create a vault</div>
       )}
     </div>
   );

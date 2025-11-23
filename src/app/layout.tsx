@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { WalletContextProvider } from '@/contexts/WalletContext';
+import { WalletProviders } from '@/contexts/WalletContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import Header from '@/components/common/Header';
 
 // Import wallet adapter CSS
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -24,9 +25,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <LanguageProvider>
-          <WalletContextProvider>
+          <WalletProviders>
+            <Header />
             {children}
-          </WalletContextProvider>
+          </WalletProviders>
         </LanguageProvider>
       </body>
     </html>

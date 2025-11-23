@@ -111,7 +111,7 @@ export default function PurifyLanding() {
   // =============================================
   // STATE MANAGEMENT
   // =============================================
-  const [isClient, setIsClient] = useState(() => typeof window !== 'undefined');
+  const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   
   // =============================================
@@ -131,7 +131,12 @@ export default function PurifyLanding() {
   // =============================================
   const walletButtonRef = useRef<HTMLButtonElement>(null);
 
-  // client detection handled by initial state
+  // =============================================
+  // EFFECT FOR CLIENT-SIDE MOUNTING
+  // =============================================
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // =============================================
   // PROTOCOL STATISTICS DATA
@@ -180,9 +185,9 @@ export default function PurifyLanding() {
   };
 
   // =============================================
-  // LOADING FALLBACK UI
+  // LOADING FALLBACK UI - Hanya render di client
   // =============================================
-  if (!isClient) {
+  if (!mounted) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#03150f] via-[#09261f] to-[#010a07] text-white flex items-center justify-center">
         <div className="text-center">
@@ -202,7 +207,7 @@ export default function PurifyLanding() {
       {/* ============================================= */}
       {/* BACKGROUND PARTICLES ANIMATION */}
       {/* ============================================= */}
-      <div className="Absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden">
         {fixedParticles.map((particle) => (
           <motion.div
             key={particle.id}
@@ -226,125 +231,7 @@ export default function PurifyLanding() {
         ))}
       </div>
 
-      {/* ============================================= */}
-      {/* HEADER SECTION WITH NAVIGATION */}
-      {/* ============================================= */}
-      <motion.header 
-        className="sticky top-0 z-50 border-b border-emerald-800/30 bg-[#03150f]/80 backdrop-blur-sm"
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-between items-center">
-            
-            {/* Logo Section - Left Side */}
-            <button
-              className="flex items-center"
-              onClick={() => router.push('/')}
-              aria-label="Go to Home"
-            >
-              <ImageLogo />
-            </button>
-            
-            {/* Navigation & Actions - Right Side */}
-            <div className="flex items-center space-x-3">
-              <div className="hidden md:flex items-center space-x-3">
-                {/* Desktop Navigation Links */}
-                <nav className="hidden md:flex items-center space-x-6 mr-4">
-                  <Link 
-                    href="/whitepaper" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors duration-200 flex items-center space-x-1"
-                  >
-                    <FileText size={16} />
-                    <span>{t('nav.whitepaper')}</span>
-                  </Link>
-                  <Link 
-                    href="/docs" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors duration-200"
-                  >
-                    {t('nav.docs')}
-                  </Link>
-                  <Link 
-                    href="/about" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors duration-200"
-                  >
-                    {t('nav.about')}
-                  </Link>
-                </nav>
-
-                {/* Language Switcher */}
-                <LanguageSwitcher />
-
-                {/* Dashboard Button (Visible when wallet connected) */}
-                {connected && (
-                  <motion.button
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleGoToDashboard}
-                  >
-                    {t('nav.dashboard')}
-                  </motion.button>
-                )}
-                
-                {/* Wallet Connection Button */}
-                <WalletMultiButton 
-                  className="!bg-emerald-500 hover:!bg-emerald-600 !text-white !px-8 !py-3 !rounded-full !text-lg !shadow-lg !shadow-emerald-500/30"
-                />
-              </div>
-              {/* Mobile menu toggle */}
-              <button
-                className="md:hidden p-2 rounded-lg border border-emerald-800/30 text-emerald-300 hover:text-emerald-400 hover:border-emerald-600/50"
-                onClick={() => setMobileOpen((v) => !v)}
-                aria-label="Toggle Menu"
-              >
-                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            </div>
-          </div>
-          {mobileOpen && (
-            <div className="md:hidden mt-2 border-t border-emerald-800/30 bg-[#03150f]/95 rounded-b-xl shadow-lg">
-              <div className="p-4 space-y-4">
-                <nav className="flex flex-col space-y-2">
-                  <Link 
-                    href="/whitepaper" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors flex items-center space-x-2"
-                  >
-                    <FileText size={16} />
-                    <span>{t('nav.whitepaper')}</span>
-                  </Link>
-                  <Link 
-                    href="/docs" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors"
-                  >
-                    {t('nav.docs')}
-                  </Link>
-                  <Link 
-                    href="/about" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors"
-                  >
-                    {t('nav.about')}
-                  </Link>
-                </nav>
-                <LanguageSwitcher />
-                {connected ? (
-                  <motion.button
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleGoToDashboard}
-                  >
-                    {t('nav.dashboard')}
-                  </motion.button>
-                ) : (
-                  <WalletMultiButton className="!bg-emerald-500 hover:!bg-emerald-600 !text-white !px-8 !py-3 !rounded-full !text-lg !shadow-lg !shadow-emerald-500/30 !w-full !justify-center" />
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </motion.header>
+      {/* Header moved to RootLayout/Header component */}
 
       {/* ============================================= */}
       {/* HERO SECTION - MAIN LANDING CONTENT */}

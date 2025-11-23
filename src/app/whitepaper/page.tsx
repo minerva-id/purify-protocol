@@ -36,59 +36,7 @@ import { useTranslations } from '@/lib/i18n';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 
-// Language Switcher Component (inline dalam file yang sama)
-function LanguageSwitcher() {
-  const { locale, setLocale } = useLanguage();
-  const [open, setOpen] = useState(false);
-  const langRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (!langRef.current) return;
-      if (!langRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
-  }, []);
-
-  const baseDropdown = "absolute top-full right-0 mt-2 w-32 bg-[#03150f] border border-emerald-700/30 rounded-lg shadow-xl transition-all duration-200 z-50 backdrop-blur-sm";
-  const visibility = open ? 'opacity-100 visible' : 'opacity-0 invisible';
-
-  return (
-    <div className="relative group" ref={langRef}>
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="flex items-center space-x-2 text-gray-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg border border-emerald-800/30 hover:border-emerald-600/50"
-      >
-        <Languages size={18} />
-        <span className="text-sm font-medium">{locale.toUpperCase()}</span>
-      </button>
-      
-      <div className={`${baseDropdown} ${visibility} md:opacity-0 md:invisible md:group-hover:opacity-100 md:group-hover:visible`}>
-        <button
-          onClick={() => { setLocale('en'); setOpen(false); }}
-          className={`w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${
-            locale === 'en' 
-              ? 'bg-emerald-600 text-white' 
-              : 'text-gray-300 hover:bg-emerald-500/20 hover:text-emerald-400'
-          } first:rounded-t-lg last:rounded-b-lg`}
-        >
-          English
-        </button>
-        <button
-          onClick={() => { setLocale('id'); setOpen(false); }}
-          className={`w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${
-            locale === 'id' 
-              ? 'bg-emerald-600 text-white' 
-              : 'text-gray-300 hover:bg-emerald-500/20 hover:text-emerald-400'
-          } first:rounded-t-lg last:rounded-b-lg`}
-        >
-          Indonesia
-        </button>
-      </div>
-    </div>
-  );
-}
+// Header is provided globally via `src/components/common/Header` and rendered in layout
 
 // English Whitepaper Content
 const englishContent = {
@@ -594,7 +542,6 @@ const whitepaperContent = {
 
 export default function WhitepaperPage() {
   const [isClient, setIsClient] = useState(() => typeof window !== 'undefined');
-  const [mobileOpen, setMobileOpen] = useState(false);
   const { locale } = useLanguage();
   const { connected } = useWallet();
   const t = useTranslations(locale);
@@ -647,137 +594,6 @@ export default function WhitepaperPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#03150f] via-[#09261f] to-[#010a07] text-white font-sans">
-      {/* Header Section */}
-      <motion.header 
-        className="sticky top-0 z-50 border-b border-emerald-800/30 bg-[#03150f]/80 backdrop-blur-sm"
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-between items-center">
-            
-            {/* Logo Section - Left Side */}
-            <button
-              className="flex items-center"
-              onClick={() => router.push('/')}
-              aria-label="Go to Home"
-            >
-              <ImageLogo />
-            </button>
-            
-            {/* Navigation & Actions - Right Side */}
-            <div className="flex items-center space-x-3">
-              <div className="hidden md:flex items-center space-x-3">
-                {/* Desktop Navigation Links */}
-                <nav className="hidden md:flex items-center space-x-6 mr-4">
-                  <Link 
-                    href="/" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors duration-200"
-                  >
-                    {t('nav.home')}
-                  </Link>
-                  <Link 
-                    href="/whitepaper" 
-                    className="text-emerald-400 border-b-2 border-emerald-400 transition-colors duration-200 flex items-center space-x-1"
-                  >
-                    <FileText size={16} />
-                    <span>{t('nav.whitepaper')}</span>
-                  </Link>
-                  <Link 
-                    href="/about" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors duration-200"
-                  >
-                    {t('nav.about')}
-                  </Link>
-                  <Link 
-                    href="/docs" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors duration-200"
-                  >
-                    {t('nav.docs')}
-                  </Link>
-                </nav>
-
-                {/* Language Switcher */}
-                <LanguageSwitcher />
-
-                {/* Dashboard Button (Visible when wallet connected) */}
-                {connected && (
-                  <Link href="/dashboard">
-                    <motion.button
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {t('nav.dashboard')}
-                    </motion.button>
-                  </Link>
-                )}
-                
-                {/* Wallet Connection Button */}
-                <WalletMultiButton 
-                  className="!bg-emerald-500 hover:!bg-emerald-600 !text-white !px-8 !py-3 !rounded-full !text-lg !shadow-lg !shadow-emerald-500/30"
-                />
-              </div>
-              {/* Mobile menu toggle */}
-              <button
-                className="md:hidden p-2 rounded-lg border border-emerald-800/30 text-emerald-300 hover:text-emerald-400 hover:border-emerald-600/50"
-                onClick={() => setMobileOpen((v) => !v)}
-                aria-label="Toggle Menu"
-              >
-                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            </div>
-          </div>
-          {mobileOpen && (
-            <div className="md:hidden mt-2 border-t border-emerald-800/30 bg-[#03150f]/95 rounded-b-xl shadow-lg">
-              <div className="p-4 space-y-4">
-                <nav className="flex flex-col space-y-2">
-                  <Link 
-                    href="/" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors"
-                  >
-                    {t('nav.home')}
-                  </Link>
-                  <Link 
-                    href="/whitepaper" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors flex items-center space-x-2"
-                  >
-                    <FileText size={16} />
-                    <span>{t('nav.whitepaper')}</span>
-                  </Link>
-                  <Link 
-                    href="/docs" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors"
-                  >
-                    {t('nav.docs')}
-                  </Link>
-                  <Link 
-                    href="/about" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors"
-                  >
-                    {t('nav.about')}
-                  </Link>
-                </nav>
-                <LanguageSwitcher />
-                {connected ? (
-                  <Link href="/dashboard" className="block">
-                    <motion.button
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {t('nav.dashboard')}
-                    </motion.button>
-                  </Link>
-                ) : (
-                  <WalletMultiButton className="!bg-emerald-500 hover:!bg-emerald-600 !text-white !px-8 !py-3 !rounded-full !text-lg !shadow-lg !shadow-emerald-500/30 !w-full !justify-center" />
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </motion.header>
 
       {/* Whitepaper Content */}
       <div className="container mx-auto px-4 py-8 max-w-4xl">

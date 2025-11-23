@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { CustomWalletButton } from '@/components/common/CustomWalletButton';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import ImageLogo from "@/components/common/ImageLogo";
@@ -38,59 +39,7 @@ const fixedParticles = Array.from({ length: 15 }, (_, i) => ({
   top: 5 + (i * 5),
 }));
 
-// Language Switcher Component (inline dalam file yang sama)
-function LanguageSwitcher() {
-  const { locale, setLocale } = useLanguage();
-  const [open, setOpen] = useState(false);
-  const langRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (!langRef.current) return;
-      if (!langRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
-  }, []);
-
-  const baseDropdown = "absolute top-full right-0 mt-2 w-32 bg-[#03150f] border border-emerald-700/30 rounded-lg shadow-xl transition-all duration-200 z-50 backdrop-blur-sm";
-  const visibility = open ? 'opacity-100 visible' : 'opacity-0 invisible';
-
-  return (
-    <div className="relative group" ref={langRef}>
-      <button
-        onClick={() => setOpen(v => !v)}
-        className="flex items-center space-x-2 text-gray-300 hover:text-emerald-400 transition-colors duration-200 px-3 py-2 rounded-lg border border-emerald-800/30 hover:border-emerald-600/50"
-      >
-        <Languages size={18} />
-        <span className="text-sm font-medium">{locale.toUpperCase()}</span>
-      </button>
-      
-      <div className={`${baseDropdown} ${visibility} md:opacity-0 md:invisible md:group-hover:opacity-100 md:group-hover:visible`}>
-        <button
-          onClick={() => { setLocale('en'); setOpen(false); }}
-          className={`w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${
-            locale === 'en' 
-              ? 'bg-emerald-600 text-white' 
-              : 'text-gray-300 hover:bg-emerald-500/20 hover:text-emerald-400'
-          } first:rounded-t-lg last:rounded-b-lg`}
-        >
-          English
-        </button>
-        <button
-          onClick={() => { setLocale('id'); setOpen(false); }}
-          className={`w-full text-left px-4 py-2 text-sm transition-colors duration-200 ${
-            locale === 'id' 
-              ? 'bg-emerald-600 text-white' 
-              : 'text-gray-300 hover:bg-emerald-500/20 hover:text-emerald-400'
-          } first:rounded-t-lg last:rounded-b-lg`}
-        >
-          Indonesia
-        </button>
-      </div>
-    </div>
-  );
-}
+// Header is provided globally via `src/components/common/Header` and rendered in layout
 
 export default function AboutPage() {
   const [isClient, setIsClient] = useState(() => typeof window !== 'undefined');
@@ -100,77 +49,23 @@ export default function AboutPage() {
   const t = useTranslations(locale);
   const router = useRouter();
 
-  // client detection handled by initial state
-
-  const teamMembers = [
-    {
-      name: "Minerva",
-      role: "Founder & CEO", 
-      bio: "Visionary leader dengan latar belakang blockchain engineering dan sustainability tech. Menginisiasi Purify Protocol untuk menyelesaikan masalah ecological debt di ekosistem Web3.",
-      expertise: ["Blockchain Architecture", "Sustainability Tech", "Protocol Design"]
-    },
-    {
-      name: "Bambang Irawan",
-      role: "Head of Marketing & Partnership",
-      bio: "Marketing strategist dengan jejak terbukti dalam membangun brand awareness dan jaringan partnership di ekosistem blockchain Asia Tenggara.",
-      expertise: ["Growth Strategy", "Partnership Development", "Community Building"]
-    },
-    {
-      name: "Aria Kusmana",
-      role: "Head of Sustainability",
-      bio: "Environmental scientist dan carbon credit expert, memastikan setiap token yang dipurify memberikan dampak lingkungan yang terukur dan terverifikasi.",
-      expertise: ["Carbon Accounting", "Environmental Impact", "ESG Compliance"]
-    }
+  const protocolFeatures = [
+    { icon: <Leaf size={28} className="text-emerald-400" />, title: locale === 'id' ? 'Ramah Lingkungan' : 'Eco-friendly', description: locale === 'id' ? 'Mengurangi jejak karbon dan limbah digital.' : 'Reduce carbon footprint and digital waste.' },
+    { icon: <Shield size={28} className="text-cyan-400" />, title: locale === 'id' ? 'Aman & Terpercaya' : 'Secure & Trusted', description: locale === 'id' ? 'Pendekatan audit dan transparansi.' : 'Auditable approach with transparency.' },
+    { icon: <Recycle size={28} className="text-emerald-300" />, title: locale === 'id' ? 'Sirkular' : 'Circular', description: locale === 'id' ? 'Tokenisasi yang mendukung daur ulang ekosistem.' : 'Tokenization that supports ecosystem recycling.' },
+    { icon: <Trophy size={28} className="text-yellow-400" />, title: locale === 'id' ? 'Berkinerja Tinggi' : 'High Performance', description: locale === 'id' ? 'Skalabilitas dan interoperabilitas.' : 'Scalability and interoperability.' },
   ];
 
-  const protocolFeatures = [
-    {
-      icon: <Recycle size={32} />,
-      title: "Token Recycling",
-      description: "Mengubah token mati menjadi sertifikat NFT bernilai melalui mekanisme vault yang aman dan terdesentralisasi"
-    },
-    {
-      icon: <Shield size={32} />,
-      title: "Transparent Verification",
-      description: "Semua aktivitas pembersihan tercatat on-chain dengan bukti yang dapat diverifikasi oleh siapa saja"
-    },
-    {
-      icon: <Cpu size={32} />,
-      title: "Blockchain Efficiency",
-      description: "Mengurangi penyumbatan storage blockchain dan meningkatkan performa jaringan secara keseluruhan"
-    },
-    {
-      icon: <Trophy size={32} />,
-      title: "Economic Incentives",
-      description: "Sistem reward yang mendorong partisipasi aktif dalam menjaga kebersihan ekosistem Web3"
-    }
+  const teamMembers = [
+    { name: 'Minerva', role: 'Founder & CEO', bio: 'Blockchain engineer and sustainability advocate.', expertise: ['Blockchain', 'Sustainability'] },
+    { name: 'Bambang Irawan', role: 'Head of Marketing', bio: 'Experienced growth and community builder.', expertise: ['Marketing', 'Partnerships'] },
+    { name: 'Dr. Siti', role: 'Environmental Lead', bio: 'Environmental scientist focused on carbon accounting.', expertise: ['Science', 'Carbon'] },
   ];
 
   const roadmap = [
-    { 
-      phase: "Phase 1: Foundation", 
-      period: "Q4 2025",
-      milestones: ["Core Protocol Development", "DevNet Deployment", "Basic Frontend Interface"],
-      status: "completed"
-    },
-    { 
-      phase: "Phase 2: Growth", 
-      period: "Q1 2026", 
-      milestones: ["MainNet Launch", "Advanced Features", "Community Building"],
-      status: "current"
-    },
-    { 
-      phase: "Phase 3: Expansion", 
-      period: "Q2 2026", 
-      milestones: ["Cross-chain Compatibility", "Governance System", "Mobile App"],
-      status: "upcoming"
-    },
-    { 
-      phase: "Phase 4: Maturity", 
-      period: "Q4 2026", 
-      milestones: ["DAO Transition", "Ecosystem Grants", "Protocol-owned Liquidity"],
-      status: "upcoming"
-    }
+    { phase: 'Phase 1', period: 'Q1 2025', status: 'completed', milestones: ['Audit', 'Prototype'] },
+    { phase: 'Phase 2', period: 'Q2 2025', status: 'current', milestones: ['Pilot', 'Integrations'] },
+    { phase: 'Phase 3', period: 'Q3 2025', status: 'upcoming', milestones: ['Mainnet', 'Scaling'] },
   ];
 
   if (!isClient) {
@@ -178,171 +73,14 @@ export default function AboutPage() {
       <div className="min-h-screen bg-gradient-to-b from-[#03150f] via-[#09261f] to-[#010a07] text-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-emerald-400">Loading Purify Protocol...</p>
+          <p className="text-emerald-400">{locale === 'id' ? 'Memuat...' : 'Loading...'}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-[#03150f] via-[#09261f] to-[#010a07] text-white overflow-hidden font-sans">
-      
-      {/* Background Particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        {fixedParticles.map((particle) => (
-          <motion.div
-            key={particle.id}
-            className="absolute rounded-full bg-emerald-400/10"
-            style={{
-              width: particle.width,
-              height: particle.height,
-              left: `${particle.left}%`,
-              top: `${particle.top}%`,
-            }}
-            animate={{
-              y: [0, -20, 0],
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: 4 + (particle.id * 0.3),
-              repeat: Infinity,
-              delay: particle.id * 0.2,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Header Section */}
-      <motion.header 
-        className="sticky top-0 z-50 border-b border-emerald-800/30 bg-[#03150f]/80 backdrop-blur-sm"
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-between items-center">
-            
-            {/* Logo Section - Left Side */}
-            <button
-              className="flex items-center"
-              onClick={() => router.push('/')}
-              aria-label="Go to Home"
-            >
-              <ImageLogo />
-            </button>
-            
-            {/* Navigation & Actions - Right Side */}
-            <div className="flex items-center space-x-3">
-              <div className="hidden md:flex items-center space-x-3">
-                {/* Desktop Navigation Links */}
-                <nav className="hidden md:flex items-center space-x-6 mr-4">
-                  <Link 
-                    href="/" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors duration-200"
-                  >
-                    {t('nav.home')}
-                  </Link>
-                  <Link 
-                    href="/whitepaper" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors duration-200 flex items-center space-x-1"
-                  >
-                    <FileText size={16} />
-                    <span>{t('nav.whitepaper')}</span>
-                  </Link>
-                  <Link 
-                    href="/about" 
-                    className="text-emerald-400 border-b-2 border-emerald-400 transition-colors duration-200"
-                  >
-                    {t('nav.about')}
-                  </Link>
-                  <Link 
-                    href="/docs" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors duration-200"
-                  >
-                    {t('nav.docs')}
-                  </Link>
-                </nav>
-
-                {/* Language Switcher */}
-                <LanguageSwitcher />
-
-                {/* Dashboard Button (Visible when wallet connected) */}
-                {connected && (
-                  <Link href="/dashboard">
-                    <motion.button
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {t('nav.dashboard')}
-                    </motion.button>
-                  </Link>
-                )}
-                
-                {/* Wallet Connection Button */}
-                <WalletMultiButton 
-                  className="!bg-emerald-500 hover:!bg-emerald-600 !text-white !px-8 !py-3 !rounded-full !text-lg !shadow-lg !shadow-emerald-500/30"
-                />
-              </div>
-              {/* Mobile menu toggle */}
-              <button
-                className="md:hidden p-2 rounded-lg border border-emerald-800/30 text-emerald-300 hover:text-emerald-400 hover:border-emerald-600/50"
-                onClick={() => setMobileOpen((v) => !v)}
-                aria-label="Toggle Menu"
-              >
-                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            </div>
-          </div>
-          {mobileOpen && (
-            <div className="md:hidden mt-2 border-t border-emerald-800/30 bg-[#03150f]/95 rounded-b-xl shadow-lg">
-              <div className="p-4 space-y-4">
-                <nav className="flex flex-col space-y-2">
-                  <Link 
-                    href="/" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors"
-                  >
-                    {t('nav.home')}
-                  </Link>
-                  <Link 
-                    href="/whitepaper" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors flex items-center space-x-2"
-                  >
-                    <FileText size={16} />
-                    <span>{t('nav.whitepaper')}</span>
-                  </Link>
-                  <Link 
-                    href="/docs" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors"
-                  >
-                    {t('nav.docs')}
-                  </Link>
-                  <Link 
-                    href="/about" 
-                    className="text-gray-300 hover:text-emerald-400 transition-colors"
-                  >
-                    {t('nav.about')}
-                  </Link>
-                </nav>
-                <LanguageSwitcher />
-                {connected ? (
-                  <Link href="/dashboard" className="block">
-                    <motion.button
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {t('nav.dashboard')}
-                    </motion.button>
-                  </Link>
-                ) : (
-                  <WalletMultiButton className="!bg-emerald-500 hover:!bg-emerald-600 !text-white !px-8 !py-3 !rounded-full !text-lg !shadow-lg !shadow-emerald-500/30 !w-full !justify-center" />
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </motion.header>
+    <div className="min-h-screen bg-gradient-to-b from-[#03150f] via-[#09261f] to-[#010a07] text-white font-sans">
 
       {/* Hero Section */}
       <motion.section 
