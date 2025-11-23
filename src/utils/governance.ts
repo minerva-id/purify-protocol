@@ -3,98 +3,78 @@
 
 import { PublicKey } from '@solana/web3.js';
 import { Program } from '@coral-xyz/anchor';
-import BN from 'bn.js';
 
 export interface BurnProposal {
   vault: string;
   proposer: string;
-  amount: BN;
-  votes: BN;
+  amount: number;
+  votes: number;
   voters: string[];
-  createdAt: BN;
-  executedAt?: BN;
+  createdAt: number;
+  executedAt?: number;
   status: 'Pending' | 'Approved' | 'Executed' | 'Rejected';
 }
 
 export interface ProtocolConfig {
   authority: string;
   feeRecipient: string;
-  feeBasisPoints: BN;
+  feeBasisPoints: number;
   paused: boolean;
 }
 
 /**
- * Convert BN to number (use with caution for display only)
- */
-export const bnToNumber = (bn: BN, decimals: number = 0): number => {
-  return bn.toNumber() / Math.pow(10, decimals);
-};
-
-/**
- * Convert number to BN
- */
-export const numberToBn = (number: number, decimals: number = 0): BN => {
-  return new BN(Math.floor(number * Math.pow(10, decimals)));
-};
-
-/**
  * Calculate protocol fee
  */
-export const calculateFee = (amount: BN, feeBasisPoints: BN = new BN(50)): BN => {
-  const basisPoints = new BN(10000);
-  return amount.mul(feeBasisPoints).div(basisPoints);
+export const calculateFee = (amount: number, feeBasisPoints: number = 50): number => {
+  return Math.floor((amount * feeBasisPoints) / 10000);
 };
 
 /**
  * Calculate net amount after fee
  */
-export const calculateNetAmount = (amount: BN, feeBasisPoints: BN = new BN(50)): BN => {
-  const fee = calculateFee(amount, feeBasisPoints);
-  return amount.sub(fee);
+export const calculateNetAmount = (amount: number, feeBasisPoints: number = 50): number => {
+  return amount - calculateFee(amount, feeBasisPoints);
 };
 
 /**
  * Format fee for display
  */
-export const formatFee = (amount: BN, feeBasisPoints: BN = new BN(50), decimals: number = 0): string => {
+export const formatFee = (amount: number, feeBasisPoints: number = 50): string => {
   const fee = calculateFee(amount, feeBasisPoints);
-  const feeNumber = bnToNumber(fee, decimals);
-  const percentage = feeBasisPoints.toNumber() / 100;
-  return `${feeNumber.toFixed(decimals)} (${percentage.toFixed(2)}%)`;
+  const percentage = (feeBasisPoints / 100).toFixed(2);
+  return `${fee} (${percentage}%)`;
 };
 
 /**
  * Check if time lock is active
  */
 export const isTimeLockActive = (
-  lastOperationTime: BN | null,
-  cooldownSeconds: BN = new BN(3600)
-): { active: boolean; remainingSeconds: BN } => {
+  lastOperationTime: number | null,
+  cooldownSeconds: number = 3600
+): { active: boolean; remainingSeconds: number } => {
   if (!lastOperationTime) {
-    return { active: false, remainingSeconds: new BN(0) };
+    return { active: false, remainingSeconds: 0 };
   }
 
-  const now = new BN(Math.floor(Date.now() / 1000));
-  const elapsed = now.sub(lastOperationTime);
-  const remaining = cooldownSeconds.sub(elapsed);
-  const isActive = remaining.gt(new BN(0));
+  const now = Math.floor(Date.now() / 1000);
+  const elapsed = now - lastOperationTime;
+  const remaining = Math.max(0, cooldownSeconds - elapsed);
 
   return {
-    active: isActive,
-    remainingSeconds: isActive ? remaining : new BN(0),
+    active: remaining > 0,
+    remainingSeconds: remaining,
   };
 };
 
 /**
  * Format time remaining
  */
-export const formatTimeRemaining = (seconds: BN): string => {
-  if (seconds.lte(new BN(0))) return 'Ready';
+export const formatTimeRemaining = (seconds: number): string => {
+  if (seconds <= 0) return 'Ready';
   
-  const secondsNum = seconds.toNumber();
-  const hours = Math.floor(secondsNum / 3600);
-  const minutes = Math.floor((secondsNum % 3600) / 60);
-  const secs = secondsNum % 60;
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
 
   if (hours > 0) {
     return `${hours}h ${minutes}m ${secs}s`;
@@ -119,14 +99,14 @@ export const canUserVote = (proposal: BurnProposal, userPubkey: string): boolean
  */
 export const canExecuteProposal = (
   proposal: BurnProposal,
-  vaultBalance: BN,
+  vaultBalance: number,
   timeLockActive: boolean
 ): { canExecute: boolean; reason?: string } => {
   if (proposal.status !== 'Approved') {
     return { canExecute: false, reason: 'Proposal is not approved' };
   }
 
-  if (proposal.amount.gt(vaultBalance)) {
+  if (proposal.amount > vaultBalance) {
     return { canExecute: false, reason: 'Insufficient vault balance' };
   }
 
@@ -177,68 +157,24 @@ export const getProposalStatusBadge = (status: BurnProposal['status']): string =
  * Calculate voting progress
  */
 export const getVotingProgress = (
-  currentVotes: BN,
-  threshold: BN
-): { percentage: number; remaining: BN } => {
-  const currentNum = currentVotes.toNumber();
-  const thresholdNum = threshold.toNumber();
-  const percentage = Math.min(100, (currentNum / thresholdNum) * 100);
-  const remaining = threshold.sub(currentVotes);
+  currentVotes: number,
+  threshold: number
+): { percentage: number; remaining: number } => {
+  const percentage = Math.min(100, (currentVotes / threshold) * 100);
+  const remaining = Math.max(0, threshold - currentVotes);
 
-  return { 
-    percentage, 
-    remaining: remaining.gt(new BN(0)) ? remaining : new BN(0) 
-  };
+  return { percentage, remaining };
 };
 
-/**
- * Compare two BN values
- */
-export const areBnsEqual = (a: BN, b: BN): boolean => {
-  return a.eq(b);
+// Utility functions untuk konversi bigint (jika diperlukan di bagian lain aplikasi)
+export const toBigInt = (value: number | string): bigint => {
+  return BigInt(value);
 };
 
-/**
- * Check if BN is zero
- */
-export const isBnZero = (value: BN): boolean => {
-  return value.isZero();
+export const fromBigInt = (value: bigint): number => {
+  return Number(value);
 };
 
-/**
- * Sum array of BN values
- */
-export const sumBns = (values: BN[]): BN => {
-  return values.reduce((acc, curr) => acc.add(curr), new BN(0));
-};
-
-/**
- * Format BN for display with decimals
- */
-export const formatBn = (value: BN, decimals: number = 0): string => {
-  const numberValue = bnToNumber(value, decimals);
-  return numberValue.toLocaleString(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: decimals,
-  });
-};
-
-/**
- * Create BN from string
- */
-export const bnFromString = (value: string, decimals: number = 0): BN => {
-  const numberValue = parseFloat(value) * Math.pow(10, decimals);
-  return new BN(Math.floor(numberValue));
-};
-
-/**
- * Safe BN operations with error handling
- */
-export const safeBnOperation = <T>(operation: () => T, fallback: T): T => {
-  try {
-    return operation();
-  } catch (error) {
-    console.error('BN operation failed:', error);
-    return fallback;
-  }
+export const formatBigInt = (value: bigint, decimals: number = 0): string => {
+  return (Number(value) / Math.pow(10, decimals)).toLocaleString();
 };
