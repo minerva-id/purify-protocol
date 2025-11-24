@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { usePurifyProgram } from '@/hooks/usePurifyProgram';
-import { PublicKey } from '@solana/web3.js';
+import { useProtocolConfig } from '@/hooks/useOnChainData';
 import { motion } from 'framer-motion';
 import { useNotification } from '@/contexts/NotificationContext';
 import { LoadingButton } from '@/components/common/LoadingButton';
+import { calculateFee } from '@/utils/governance';
 
 export default function TokenDeposit() {
   const { programId, wallet, connection, Transaction, createDepositInstruction } = usePurifyProgram();
@@ -13,6 +14,10 @@ export default function TokenDeposit() {
   const [amount, setAmount] = useState('');
   const [vaultName, setVaultName] = useState('plastic-waste');
   const [isLoading, setIsLoading] = useState(false);
+  const { config, loading: configLoading } = useProtocolConfig();
+  const parsedAmount = amount ? parseFloat(amount) : 0;
+  const estimatedFee = config ? calculateFee(isNaN(parsedAmount) ? 0 : parsedAmount, config.feeBasisPoints) : 0;
+  const netAmount = config ? Math.max((isNaN(parsedAmount) ? 0 : parsedAmount) - estimatedFee, 0) : (isNaN(parsedAmount) ? 0 : parsedAmount);
 
   const depositTokens = async () => {
     if (!wallet.connected || !wallet.publicKey || !wallet.sendTransaction) {
@@ -23,6 +28,11 @@ export default function TokenDeposit() {
     const depositAmount = parseFloat(amount);
     if (isNaN(depositAmount) || depositAmount <= 0) {
       error('Invalid Amount', 'Please enter a valid amount greater than 0');
+      return;
+    }
+
+    if (config?.paused) {
+      error('Protocol Paused', 'Deposits are temporarily disabled by protocol authority');
       return;
     }
 
@@ -112,6 +122,11 @@ export default function TokenDeposit() {
     >
       <h4 className="font-semibold text-orange-400 mb-2">🔥 Purge Tokens</h4>
       <div className="space-y-3">
+        {config?.paused && (
+          <div className="bg-red-500/10 border border-red-500/30 text-red-200 text-xs rounded-lg p-3">
+            Protocol is currently paused. Deposits are disabled until resumed by the authority.
+          </div>
+        )}
         <div>
           <label className="text-xs text-orange-300 mb-1 block">Select Vault</label>
           <select
@@ -137,11 +152,25 @@ export default function TokenDeposit() {
             className="w-full px-3 py-2 bg-black/20 border border-orange-500/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-400 text-sm"
           />
         </div>
+
+        <div className="bg-black/20 border border-orange-500/20 rounded-lg p-3 text-xs text-orange-200 space-y-1">
+          {configLoading ? (
+            <p>Loading protocol fee info...</p>
+          ) : config ? (
+            <>
+              <p>Protocol fee: {(config.feeBasisPoints / 100).toFixed(2)}% (~{estimatedFee.toFixed(4)} tokens)</p>
+              <p>Net amount received: {netAmount.toFixed(4)} tokens</p>
+              {config.paused && <p className="text-red-300">Protocol is currently paused.</p>}
+            </>
+          ) : (
+            <p>No protocol fee configured. Deposits are fee-free for now.</p>
+          )}
+        </div>
         
         <LoadingButton
           isLoading={isLoading}
           onClick={depositTokens}
-          disabled={!amount}
+          disabled={!amount || config?.paused}
           className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3"
           loadingText="Purging Tokens..."
         >

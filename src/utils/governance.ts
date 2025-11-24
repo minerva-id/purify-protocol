@@ -1,9 +1,6 @@
 // src/utils/governance.ts
 // Governance utilities for frontend
 
-import { PublicKey } from '@solana/web3.js';
-import { Program } from '@coral-xyz/anchor';
-
 export interface BurnProposal {
   vault: string;
   proposer: string;
@@ -160,21 +157,12 @@ export const getVotingProgress = (
   currentVotes: number,
   threshold: number
 ): { percentage: number; remaining: number } => {
+  if (threshold <= 0) {
+    return { percentage: 100, remaining: 0 };
+  }
+
   const percentage = Math.min(100, (currentVotes / threshold) * 100);
   const remaining = Math.max(0, threshold - currentVotes);
 
   return { percentage, remaining };
-};
-
-// Utility functions untuk konversi bigint (jika diperlukan di bagian lain aplikasi)
-export const toBigInt = (value: number | string): bigint => {
-  return BigInt(value);
-};
-
-export const fromBigInt = (value: bigint): number => {
-  return Number(value);
-};
-
-export const formatBigInt = (value: bigint, decimals: number = 0): string => {
-  return (Number(value) / Math.pow(10, decimals)).toLocaleString();
 };

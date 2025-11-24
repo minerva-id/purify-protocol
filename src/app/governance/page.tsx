@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useRouter } from 'next/navigation';
 import { PublicKey, Transaction } from '@solana/web3.js';
@@ -9,9 +9,6 @@ import {
   Vote, 
   Plus, 
   TrendingUp,
-  Shield,
-  Clock,
-  Users,
   CheckCircle2
 } from "lucide-react";
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -19,10 +16,12 @@ import { useTranslations } from '@/lib/i18n';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { BurnProposalCard } from '@/components/governance/BurnProposalCard';
 import { ProtocolStatus } from '@/components/governance/ProtocolStatus';
+import { LoadingButton } from '@/components/common/LoadingButton';
 import { useNotification } from '@/contexts/NotificationContext';
-import { useProtocolConfig, useVaultBurnProposals } from '@/hooks/useOnChainData';
+import { useProtocolConfig, useVaultBurnProposals, useVaultState } from '@/hooks/useOnChainData';
+import { useVaultSuggestions } from '@/hooks/useVaultSuggestions';
 import { usePurifyProgram } from '@/utils/program';
-import { createBurnProposal, voteOnProposal, executeBurnProposal } from '@/utils/transactions';
+import { createBurnProposal, voteOnProposal, executeBurnProposal, pauseProtocol, unpauseProtocol } from '@/utils/transactions';
 import { findVaultStateAddress } from '@/utils/program';
 import { parseSolanaError } from '@/utils/onchain';
 
@@ -31,6 +30,10 @@ export default function GovernancePage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [proposalAmount, setProposalAmount] = useState('');
   const [selectedVaultMint, setSelectedVaultMint] = useState('');
+  const [mintPublicKey, setMintPublicKey] = useState<PublicKey | null>(null);
+  const [mintError, setMintError] = useState<string | null>(null);
+  const [isPausing, setIsPausing] = useState(false);
+  const [isUnpausing, setIsUnpausing] = useState(false);
   const { connected, publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const router = useRouter();
@@ -39,19 +42,33 @@ export default function GovernancePage() {
   const { success, error, info } = useNotification();
   const { getProgram } = usePurifyProgram();
   
+  useEffect(() => {
+    if (!selectedVaultMint) {
+      setMintPublicKey(null);
+      setMintError(null);
+      return;
+    }
+
+    try {
+      setMintPublicKey(new PublicKey(selectedVaultMint));
+      setMintError(null);
+    } catch (err) {
+      console.error('Invalid mint address', err);
+      setMintPublicKey(null);
+      setMintError('Invalid mint address');
+    }
+  }, [selectedVaultMint]);
+
   // Fetch real on-chain data
   const { config, loading: configLoading } = useProtocolConfig();
-  const vaultStatePubkey = selectedVaultMint ? 
-    (() => {
-      try {
-        const mint = new PublicKey(selectedVaultMint);
-        const [vaultState] = findVaultStateAddress(mint);
-        return vaultState;
-      } catch {
-        return undefined;
-      }
-    })() : undefined;
+  const vaultStatePubkey = useMemo(() => {
+    if (!mintPublicKey) return undefined;
+    const [vaultState] = findVaultStateAddress(mintPublicKey);
+    return vaultState;
+  }, [mintPublicKey]);
   const { proposals, loading: proposalsLoading } = useVaultBurnProposals(vaultStatePubkey);
+  const { vaultState, loading: vaultStateLoading } = useVaultState(mintPublicKey ?? undefined);
+  const { suggestions, addSuggestion } = useVaultSuggestions();
 
   useEffect(() => {
     setIsClient(true);
@@ -66,8 +83,17 @@ export default function GovernancePage() {
     }
   }, [connected, isClient, router]);
 
+  useEffect(() => {
+    if (vaultState && mintPublicKey) {
+      addSuggestion({
+        mint: mintPublicKey.toBase58(),
+        label: vaultState.metadataUri || `Vault ${mintPublicKey.toBase58().slice(0, 4)}...`,
+      });
+    }
+  }, [vaultState, mintPublicKey, addSuggestion]);
+
   const handleCreateProposal = async () => {
-    if (!publicKey || !selectedVaultMint || !proposalAmount) {
+    if (!publicKey || !mintPublicKey || !proposalAmount) {
       error('Missing Information', 'Please provide vault mint and amount');
       return;
     }
@@ -79,15 +105,14 @@ export default function GovernancePage() {
     }
 
     try {
-      const mint = new PublicKey(selectedVaultMint);
-      const [vaultState] = findVaultStateAddress(mint);
+      const [vaultStateAddress] = findVaultStateAddress(mintPublicKey);
       const program = getProgram();
 
       info('Creating Proposal', 'Please approve the transaction...');
 
       const instruction = await createBurnProposal(
         program,
-        vaultState,
+        vaultStateAddress,
         publicKey,
         amount
       );
@@ -143,20 +168,34 @@ export default function GovernancePage() {
     if (!publicKey) return;
 
     try {
+      if (!mintPublicKey) {
+        error('Missing Mint', 'Please enter a valid mint before executing proposals');
+        return;
+      }
+
       const vaultState = new PublicKey(proposal.vault);
       const proposer = new PublicKey(proposal.proposer);
-      
-      // Extract mint from vault state (we need to fetch it or pass it)
-      // For now, we'll need the mint address - this should be passed or fetched
-      // This is a limitation - we need the mint to execute
-      error('Execution Error', 'Mint address required. Please provide the mint address for this vault.');
-      return;
+      const program = getProgram();
+      const feeRecipientPubkey = config?.feeRecipient ? new PublicKey(config.feeRecipient) : undefined;
 
-      // Uncomment when mint is available:
-      // const mint = new PublicKey(selectedVaultMint);
-      // const program = getProgram();
-      // const instruction = await executeBurnProposal(program, mint, vaultState, proposer);
-      // ... rest of execution logic
+      info('Executing Proposal', 'Please approve the transaction...');
+
+      const instruction = await executeBurnProposal(
+        program,
+        mintPublicKey,
+        vaultState,
+        proposer,
+        feeRecipientPubkey
+      );
+
+      const transaction = new Transaction().add(instruction);
+      transaction.feePayer = publicKey;
+      transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+      const signature = await sendTransaction(transaction, connection);
+      await connection.confirmTransaction(signature, 'confirmed');
+
+      success('Proposal Executed', 'Burn proposal has been executed');
     } catch (err) {
       const errorMsg = parseSolanaError(err);
       error(errorMsg.title, errorMsg.message);
@@ -221,11 +260,69 @@ export default function GovernancePage() {
         </motion.div>
 
         {/* Protocol Status */}
-        <div className="mb-8">
+        <div className="mb-8 space-y-4">
           {configLoading ? (
             <LoadingSpinner text="Loading protocol status..." />
           ) : (
-            <ProtocolStatus config={config} />
+            <>
+              <ProtocolStatus config={config} />
+              {config && publicKey && config.authority === publicKey.toString() && (
+                <div className="flex flex-wrap gap-3">
+                  <LoadingButton
+                    isLoading={isPausing}
+                    disabled={config.paused || isPausing}
+                    onClick={async () => {
+                      if (!publicKey) return;
+                      setIsPausing(true);
+                      try {
+                        const program = getProgram();
+                        const instruction = await pauseProtocol(program, publicKey);
+                        const transaction = new Transaction().add(instruction);
+                        transaction.feePayer = publicKey;
+                        transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+                        info('Pausing Protocol', 'Approve the transaction to pause the protocol.');
+                        const signature = await sendTransaction(transaction, connection);
+                        await connection.confirmTransaction(signature, 'confirmed');
+                        success('Protocol Paused', 'Protocol operations are paused.');
+                      } catch (err) {
+                        const errorMsg = parseSolanaError(err);
+                        error(errorMsg.title, errorMsg.message);
+                      } finally {
+                        setIsPausing(false);
+                      }
+                    }}
+                  >
+                    Pause Protocol
+                  </LoadingButton>
+                  <LoadingButton
+                    isLoading={isUnpausing}
+                    disabled={!config.paused || isUnpausing}
+                    onClick={async () => {
+                      if (!publicKey) return;
+                      setIsUnpausing(true);
+                      try {
+                        const program = getProgram();
+                        const instruction = await unpauseProtocol(program, publicKey);
+                        const transaction = new Transaction().add(instruction);
+                        transaction.feePayer = publicKey;
+                        transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+                        info('Resuming Protocol', 'Approve the transaction to unpause the protocol.');
+                        const signature = await sendTransaction(transaction, connection);
+                        await connection.confirmTransaction(signature, 'confirmed');
+                        success('Protocol Resumed', 'Protocol operations resumed.');
+                      } catch (err) {
+                        const errorMsg = parseSolanaError(err);
+                        error(errorMsg.title, errorMsg.message);
+                      } finally {
+                        setIsUnpausing(false);
+                      }
+                    }}
+                  >
+                    Resume Protocol
+                  </LoadingButton>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -235,12 +332,73 @@ export default function GovernancePage() {
             {locale === 'id' ? 'Pilih Vault (Mint Address)' : 'Select Vault (Mint Address)'}
           </label>
           <input
+            list="vault-suggestions"
             type="text"
             value={selectedVaultMint}
             onChange={(e) => setSelectedVaultMint(e.target.value)}
             placeholder="Enter mint address..."
             className="w-full bg-white/10 border border-emerald-500/30 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
+          <datalist id="vault-suggestions">
+            {suggestions.map((suggestion) => (
+              <option
+                key={suggestion.mint}
+                value={suggestion.mint}
+                label={suggestion.label || suggestion.mint}
+              />
+            ))}
+          </datalist>
+          {suggestions.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3 text-xs">
+              {suggestions.map((suggestion) => (
+                <button
+                  key={suggestion.mint}
+                  type="button"
+                  onClick={() => setSelectedVaultMint(suggestion.mint)}
+                  className="px-3 py-1 rounded-full bg-white/10 border border-emerald-500/30 text-gray-200 hover:bg-emerald-500/20 transition"
+                >
+                  {suggestion.label || suggestion.mint.slice(0, 6)}…
+                </button>
+              ))}
+            </div>
+          )}
+          {mintError && (
+            <p className="text-sm text-red-400 mt-2">{mintError}</p>
+          )}
+        </div>
+
+        {/* Vault Insights */}
+        <div className="mb-8">
+          {mintPublicKey ? (
+            vaultStateLoading ? (
+              <LoadingSpinner text="Loading vault data..." />
+            ) : vaultState ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white/5 rounded-xl p-4 border border-emerald-500/20">
+                  <p className="text-sm text-gray-400 mb-1">Total Deposited</p>
+                  <p className="text-2xl font-bold text-emerald-300">{vaultState.totalDeposited.toLocaleString()}</p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-emerald-500/20">
+                  <p className="text-sm text-gray-400 mb-1">Governance Threshold</p>
+                  <p className="text-2xl font-bold text-emerald-300">{vaultState.governanceThreshold ?? 2} votes</p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-emerald-500/20">
+                  <p className="text-sm text-gray-400 mb-1">Last Burn</p>
+                  <p className="text-2xl font-bold text-emerald-300">
+                    {vaultState.lastBurnAt ? new Date(vaultState.lastBurnAt * 1000).toLocaleString() : 'No burns yet'}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 text-yellow-200">
+                {locale === 'id' ? 'Vault belum ditemukan di blockchain' : 'Vault not found on chain yet'}
+              </div>
+            )
+          ) : (
+            <div className="bg-white/5 rounded-xl p-4 border border-emerald-500/20 text-gray-300">
+              {locale === 'id' ? 'Masukkan alamat mint untuk melihat detail vault' : 'Enter a mint address to view vault details'}
+            </div>
+          )}
         </div>
 
         {/* Stats Grid */}
@@ -285,12 +443,24 @@ export default function GovernancePage() {
             <span>{locale === 'id' ? 'Burn Proposals' : 'Burn Proposals'}</span>
           </h2>
 
-          {proposalsLoading ? (
+          {!mintPublicKey && (
+            <div className="text-center py-12 bg-white/5 rounded-2xl border border-emerald-500/20">
+              <p className="text-gray-400">
+                {locale === 'id' 
+                  ? 'Masukkan alamat mint untuk melihat proposal'
+                  : 'Enter a mint address to view proposals'
+                }
+              </p>
+            </div>
+          )}
+
+          {mintPublicKey && proposalsLoading && (
             <LoadingSpinner text="Loading proposals..." />
-          ) : (
+          )}
+
+          {mintPublicKey && !proposalsLoading && proposals.length > 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {proposals.map((proposal, index) => {
-                // Convert onchain proposal format to governance format
                 const governanceProposal = {
                   vault: proposal.vault,
                   proposer: proposal.proposer,
@@ -302,11 +472,9 @@ export default function GovernancePage() {
                   status: proposal.status,
                 };
 
-                // We need vault balance and threshold - these should be fetched
-                // For now, using placeholder values
-                const vaultBalance = 5000000; // TODO: Fetch from vault state
-                const threshold = 2; // TODO: Fetch from vault state or config
-                const lastBurnTime = null; // TODO: Fetch from vault state
+                const vaultBalance = vaultState?.totalDeposited ?? 0;
+                const threshold = vaultState?.governanceThreshold ?? 2;
+                const lastBurnTime = vaultState?.lastBurnAt ?? null;
 
                 return (
                   <BurnProposalCard
@@ -323,7 +491,7 @@ export default function GovernancePage() {
             </div>
           )}
 
-          {!proposalsLoading && proposals.length === 0 && (
+          {mintPublicKey && !proposalsLoading && proposals.length === 0 && (
             <div className="text-center py-12 bg-white/5 rounded-2xl border border-emerald-500/20">
               <Vote className="text-gray-400 mx-auto mb-4" size={48} />
               <p className="text-gray-400">

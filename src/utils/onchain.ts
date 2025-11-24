@@ -1,6 +1,7 @@
 // src/utils/onchain.ts
-import { Connection, PublicKey } from '@solana/web3.js';
-import { Program } from '@coral-xyz/anchor';
+import { Connection, PublicKey, Keypair } from '@solana/web3.js';
+import { AnchorProvider, Program } from '@coral-xyz/anchor';
+import type { Wallet } from '@coral-xyz/anchor';
 import { 
   findVaultStateAddress, 
   findUserContributionAddress,
@@ -9,7 +10,29 @@ import {
   findBurnProposalAddress
 } from './program';
 import { PURIFY_PROGRAM_ID } from './constants';
-import IDL from '../types/purify';
+import PurifyIdl from '../../../target/idl/purify.json';
+import type { Purify } from '../../../target/types/purify';
+
+const READONLY_KEYPAIR = Keypair.generate();
+
+const READONLY_WALLET: Wallet = {
+  publicKey: READONLY_KEYPAIR.publicKey,
+  payer: READONLY_KEYPAIR,
+  async signTransaction<T>(tx: T): Promise<T> {
+    return tx;
+  },
+  async signAllTransactions<T>(txs: T[]): Promise<T[]> {
+    return txs;
+  },
+};
+
+const getReadonlyProgram = (connection: Connection) => {
+  const provider = new AnchorProvider(connection, READONLY_WALLET, {
+    commitment: 'confirmed',
+  });
+  const idl = { ...(PurifyIdl as Purify), address: PURIFY_PROGRAM_ID.toBase58() };
+  return new Program(idl as Purify, provider);
+};
 
 export interface VaultData {
   mint: string;
@@ -51,11 +74,9 @@ export const fetchVaultState = async (
   try {
     const [vaultState] = findVaultStateAddress(mint);
     
-    const program = new Program(IDL as any, PURIFY_PROGRAM_ID, {
-      connection,
-    });
+    const program = getReadonlyProgram(connection);
 
-    const vaultAccount = await program.account.vaultState.fetch(vaultState);
+    const vaultAccount = await (program.account as any).vaultState.fetch(vaultState);
     
     return {
       mint: vaultAccount.mint.toString(),
@@ -93,11 +114,9 @@ export const fetchUserContribution = async (
   try {
     const [userContribution] = findUserContributionAddress(mint, user);
     
-    const program = new Program(IDL as any, PURIFY_PROGRAM_ID, {
-      connection,
-    });
+    const program = getReadonlyProgram(connection);
 
-    const contributionAccount = await program.account.userContribution.fetch(userContribution);
+    const contributionAccount = await (program.account as any).userContribution.fetch(userContribution);
     
     return {
       user: contributionAccount.user.toString(),
@@ -127,11 +146,9 @@ export const fetchCertificate = async (
   try {
     const [certificate] = findCertificateMintAddress(mint, owner);
     
-    const program = new Program(IDL as any, PURIFY_PROGRAM_ID, {
-      connection,
-    });
+    const program = getReadonlyProgram(connection);
 
-    const certificateAccount = await program.account.certificate.fetch(certificate);
+    const certificateAccount = await (program.account as any).certificate.fetch(certificate);
     
     return {
       mint: certificateAccount.mint.toString(),
@@ -158,12 +175,10 @@ export const fetchUserVaults = async (
   user: PublicKey
 ): Promise<VaultData[]> => {
   try {
-    const program = new Program(IDL as any, PURIFY_PROGRAM_ID, {
-      connection,
-    });
+    const program = getReadonlyProgram(connection);
 
     // Fetch deposit events for this user
-    const depositEvents = await program.account.vaultState.all([
+    const depositEvents = await (program.account as any).vaultState.all([
       {
         memcmp: {
           offset: 8 + 32, // Skip discriminator and mint
@@ -206,11 +221,9 @@ export const fetchProtocolStats = async (
   activeVaults: number;
 }> => {
   try {
-    const program = new Program(IDL as any, PURIFY_PROGRAM_ID, {
-      connection,
-    });
+    const program = getReadonlyProgram(connection);
 
-    const allVaults = await program.account.vaultState.all();
+    const allVaults = await (program.account as any).vaultState.all();
     
     let totalDeposited = 0;
     let totalBurned = 0;
@@ -382,11 +395,9 @@ export const fetchProtocolConfig = async (
   try {
     const [configAddress] = findProtocolConfigAddress();
     
-    const program = new Program(IDL as any, PURIFY_PROGRAM_ID, {
-      connection,
-    });
+    const program = getReadonlyProgram(connection);
 
-    const configAccount = await program.account.protocolConfig.fetch(configAddress);
+    const configAccount = await (program.account as any).protocolConfig.fetch(configAddress);
     
     return {
       authority: configAccount.authority.toString(),
@@ -424,11 +435,9 @@ export const fetchBurnProposal = async (
   try {
     const [proposalAddress] = findBurnProposalAddress(vaultState, proposer);
     
-    const program = new Program(IDL as any, PURIFY_PROGRAM_ID, {
-      connection,
-    });
+    const program = getReadonlyProgram(connection);
 
-    const proposalAccount = await program.account.burnProposal.fetch(proposalAddress);
+    const proposalAccount = await (program.account as any).burnProposal.fetch(proposalAddress);
     
     // Convert ProposalStatus enum to string
     let status: 'Pending' | 'Approved' | 'Executed' | 'Rejected' = 'Pending';
@@ -479,12 +488,10 @@ export const fetchVaultBurnProposals = async (
   status: 'Pending' | 'Approved' | 'Executed' | 'Rejected';
 }>> => {
   try {
-    const program = new Program(IDL as any, PURIFY_PROGRAM_ID, {
-      connection,
-    });
+    const program = getReadonlyProgram(connection);
 
     // Fetch all burn proposals for this vault
-    const proposals = await program.account.burnProposal.all([
+    const proposals = await (program.account as any).burnProposal.all([
       {
         memcmp: {
           offset: 8, // Skip discriminator
@@ -493,7 +500,7 @@ export const fetchVaultBurnProposals = async (
       },
     ]);
 
-    return proposals.map((proposal) => {
+    return proposals.map((proposal: any) => {
       let status: 'Pending' | 'Approved' | 'Executed' | 'Rejected' = 'Pending';
       if (proposal.account.status.pending) {
         status = 'Pending';

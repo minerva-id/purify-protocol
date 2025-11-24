@@ -273,3 +273,47 @@ export const executeBurnProposal = async (
     throw error;
   }
 };
+
+export const pauseProtocol = async (
+  program: Program<Idl>,
+  authority: PublicKey
+) => {
+  try {
+    const [config] = findProtocolConfigAddress();
+    const instruction = await program.methods
+      .pauseProtocol()
+      .accounts({
+        config,
+        authority,
+      })
+      .instruction();
+
+    console.log('[pauseProtocol] Instruction created successfully');
+    return instruction;
+  } catch (error) {
+    console.error('[pauseProtocol] Error creating instruction:', error);
+    throw error;
+  }
+};
+
+export const unpauseProtocol = async (
+  program: Program<Idl>,
+  authority: PublicKey
+) => {
+  try {
+    const [config] = findProtocolConfigAddress();
+    const instruction = await program.methods
+      .unpauseProtocol()
+      .accounts({
+        config,
+        authority,
+      })
+      .instruction();
+
+    console.log('[unpauseProtocol] Instruction created successfully');
+    return instruction;
+  } catch (error) {
+    console.error('[unpauseProtocol] Error creating instruction:', error);
+    throw error;
+  }
+};
