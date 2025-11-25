@@ -59,7 +59,7 @@ export default function AboutPage() {
   const teamMembers = [
     { name: 'Minerva', role: 'Founder & CEO', bio: 'Blockchain engineer and sustainability advocate.', expertise: ['Blockchain', 'Sustainability'] },
     { name: 'Bambang Irawan', role: 'Head of Marketing', bio: 'Experienced growth and community builder.', expertise: ['Marketing', 'Partnerships'] },
-    { name: 'Dr. Siti', role: 'Environmental Lead', bio: 'Environmental scientist focused on carbon accounting.', expertise: ['Science', 'Carbon'] },
+    { name: 'Aria Kusmana', role: 'Environmental Lead', bio: 'Environmental scientist focused on carbon accounting.', expertise: ['Science', 'Carbon'] },
   ];
 
   const roadmap = [
