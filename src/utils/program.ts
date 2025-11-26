@@ -2,7 +2,7 @@
 import { Program, AnchorProvider, Idl } from '@coral-xyz/anchor';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, SystemProgram, Keypair, Connection } from '@solana/web3.js';
-import IDL from '../types/purify';
+import IDL from '@/idl/purify.json';
 import { 
   PURIFY_PROGRAM_ID, 
   TOKEN_PROGRAM_ID, 
