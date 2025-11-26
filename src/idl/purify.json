@@ -1,10 +1,4 @@
-/**
- * Program IDL in camelCase format in order to be used in JS/TS.
- *
- * Note that this is only a type helper and is not the actual IDL. The original
- * IDL can be found at `target/idl/purify.json`.
- */
-export type Purify = {
+{
   "address": "6jpBQ4dMhWJbWWfDa2GhcNvokoqd98a2gKydEAimKkpJ",
   "metadata": {
     "name": "purify",
@@ -14,7 +8,7 @@ export type Purify = {
   },
   "instructions": [
     {
-      "name": "burnFromVault",
+      "name": "burn_from_vault",
       "discriminator": [
         145,
         248,
@@ -27,7 +21,7 @@ export type Purify = {
       ],
       "accounts": [
         {
-          "name": "vaultState",
+          "name": "vault_state",
           "writable": true,
           "pda": {
             "seeds": [
@@ -57,11 +51,11 @@ export type Purify = {
           "signer": true
         },
         {
-          "name": "vaultAta",
+          "name": "vault_ata",
           "writable": true
         },
         {
-          "name": "vaultAuthority",
+          "name": "vault_authority",
           "pda": {
             "seeds": [
               {
@@ -82,7 +76,7 @@ export type Purify = {
           }
         },
         {
-          "name": "userContribution",
+          "name": "user_contribution",
           "writable": true,
           "pda": {
             "seeds": [
@@ -115,11 +109,11 @@ export type Purify = {
           }
         },
         {
-          "name": "tokenProgram",
+          "name": "token_program",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -131,7 +125,7 @@ export type Purify = {
       ]
     },
     {
-      "name": "closeVault",
+      "name": "close_vault",
       "discriminator": [
         141,
         103,
@@ -144,7 +138,7 @@ export type Purify = {
       ],
       "accounts": [
         {
-          "name": "vaultState",
+          "name": "vault_state",
           "writable": true,
           "pda": {
             "seeds": [
@@ -174,14 +168,14 @@ export type Purify = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "createBurnProposal",
+      "name": "create_burn_proposal",
       "discriminator": [
         127,
         129,
@@ -218,7 +212,7 @@ export type Purify = {
               },
               {
                 "kind": "account",
-                "path": "vaultState"
+                "path": "vault_state"
               },
               {
                 "kind": "account",
@@ -228,7 +222,7 @@ export type Purify = {
           }
         },
         {
-          "name": "vaultState",
+          "name": "vault_state",
           "writable": true
         },
         {
@@ -264,7 +258,7 @@ export type Purify = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -276,7 +270,7 @@ export type Purify = {
       ]
     },
     {
-      "name": "depositToVault",
+      "name": "deposit_to_vault",
       "discriminator": [
         18,
         62,
@@ -289,7 +283,7 @@ export type Purify = {
       ],
       "accounts": [
         {
-          "name": "vaultState",
+          "name": "vault_state",
           "writable": true,
           "pda": {
             "seeds": [
@@ -319,15 +313,15 @@ export type Purify = {
           "signer": true
         },
         {
-          "name": "depositorAta",
+          "name": "depositor_ata",
           "writable": true
         },
         {
-          "name": "vaultAta",
+          "name": "vault_ata",
           "writable": true
         },
         {
-          "name": "vaultAuthority",
+          "name": "vault_authority",
           "pda": {
             "seeds": [
               {
@@ -348,7 +342,7 @@ export type Purify = {
           }
         },
         {
-          "name": "userContribution",
+          "name": "user_contribution",
           "writable": true,
           "pda": {
             "seeds": [
@@ -385,20 +379,20 @@ export type Purify = {
           "optional": true
         },
         {
-          "name": "feeRecipientAta",
+          "name": "fee_recipient_ata",
           "writable": true,
           "optional": true
         },
         {
-          "name": "tokenProgram",
+          "name": "token_program",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "associatedTokenProgram",
+          "name": "associated_token_program",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -410,7 +404,7 @@ export type Purify = {
       ]
     },
     {
-      "name": "executeBurnProposal",
+      "name": "execute_burn_proposal",
       "discriminator": [
         3,
         190,
@@ -427,7 +421,7 @@ export type Purify = {
           "writable": true
         },
         {
-          "name": "vaultState",
+          "name": "vault_state",
           "writable": true
         },
         {
@@ -461,11 +455,11 @@ export type Purify = {
           "name": "mint"
         },
         {
-          "name": "vaultAta",
+          "name": "vault_ata",
           "writable": true
         },
         {
-          "name": "vaultAuthority",
+          "name": "vault_authority",
           "pda": {
             "seeds": [
               {
@@ -486,11 +480,11 @@ export type Purify = {
           }
         },
         {
-          "name": "feeRecipientAta",
+          "name": "fee_recipient_ata",
           "writable": true
         },
         {
-          "name": "userContribution",
+          "name": "user_contribution",
           "writable": true,
           "optional": true
         },
@@ -501,18 +495,18 @@ export type Purify = {
           "optional": true
         },
         {
-          "name": "tokenProgram",
+          "name": "token_program",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "initializeProtocolConfig",
+      "name": "initialize_protocol_config",
       "discriminator": [
         28,
         50,
@@ -558,17 +552,17 @@ export type Purify = {
           "signer": true
         },
         {
-          "name": "feeRecipient"
+          "name": "fee_recipient"
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "initializeVault",
+      "name": "initialize_vault",
       "discriminator": [
         48,
         191,
@@ -581,7 +575,7 @@ export type Purify = {
       ],
       "accounts": [
         {
-          "name": "vaultState",
+          "name": "vault_state",
           "writable": true,
           "pda": {
             "seeds": [
@@ -611,14 +605,14 @@ export type Purify = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "mintCertificate",
+      "name": "mint_certificate",
       "discriminator": [
         53,
         2,
@@ -631,7 +625,7 @@ export type Purify = {
       ],
       "accounts": [
         {
-          "name": "vaultState",
+          "name": "vault_state",
           "pda": {
             "seeds": [
               {
@@ -652,7 +646,7 @@ export type Purify = {
           }
         },
         {
-          "name": "userContribution",
+          "name": "user_contribution",
           "pda": {
             "seeds": [
               {
@@ -724,19 +718,19 @@ export type Purify = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "metadataUri",
+          "name": "metadata_uri",
           "type": "string"
         }
       ]
     },
     {
-      "name": "pauseProtocol",
+      "name": "pause_protocol",
       "discriminator": [
         144,
         95,
@@ -785,7 +779,7 @@ export type Purify = {
       "args": []
     },
     {
-      "name": "unpauseProtocol",
+      "name": "unpause_protocol",
       "discriminator": [
         183,
         154,
@@ -834,7 +828,7 @@ export type Purify = {
       "args": []
     },
     {
-      "name": "updateVaultMetadata",
+      "name": "update_vault_metadata",
       "discriminator": [
         94,
         54,
@@ -847,7 +841,7 @@ export type Purify = {
       ],
       "accounts": [
         {
-          "name": "vaultState",
+          "name": "vault_state",
           "writable": true,
           "pda": {
             "seeds": [
@@ -879,13 +873,13 @@ export type Purify = {
       ],
       "args": [
         {
-          "name": "metadataUri",
+          "name": "metadata_uri",
           "type": "string"
         }
       ]
     },
     {
-      "name": "voteOnProposal",
+      "name": "vote_on_proposal",
       "discriminator": [
         188,
         239,
@@ -902,7 +896,7 @@ export type Purify = {
           "writable": true
         },
         {
-          "name": "vaultState",
+          "name": "vault_state",
           "writable": true
         },
         {
@@ -916,7 +910,7 @@ export type Purify = {
   ],
   "accounts": [
     {
-      "name": "burnProposal",
+      "name": "BurnProposal",
       "discriminator": [
         34,
         21,
@@ -929,7 +923,7 @@ export type Purify = {
       ]
     },
     {
-      "name": "certificate",
+      "name": "Certificate",
       "discriminator": [
         202,
         229,
@@ -942,7 +936,7 @@ export type Purify = {
       ]
     },
     {
-      "name": "protocolConfig",
+      "name": "ProtocolConfig",
       "discriminator": [
         207,
         91,
@@ -955,7 +949,7 @@ export type Purify = {
       ]
     },
     {
-      "name": "userContribution",
+      "name": "UserContribution",
       "discriminator": [
         89,
         250,
@@ -968,7 +962,7 @@ export type Purify = {
       ]
     },
     {
-      "name": "vaultState",
+      "name": "VaultState",
       "discriminator": [
         228,
         196,
@@ -983,7 +977,7 @@ export type Purify = {
   ],
   "events": [
     {
-      "name": "certificateMinted",
+      "name": "CertificateMinted",
       "discriminator": [
         206,
         5,
@@ -996,7 +990,7 @@ export type Purify = {
       ]
     },
     {
-      "name": "depositRecorded",
+      "name": "DepositRecorded",
       "discriminator": [
         0,
         223,
@@ -1009,7 +1003,7 @@ export type Purify = {
       ]
     },
     {
-      "name": "tokensBurned",
+      "name": "TokensBurned",
       "discriminator": [
         230,
         255,
@@ -1022,7 +1016,7 @@ export type Purify = {
       ]
     },
     {
-      "name": "vaultClosed",
+      "name": "VaultClosed",
       "discriminator": [
         238,
         129,
@@ -1038,78 +1032,78 @@ export type Purify = {
   "errors": [
     {
       "code": 6000,
-      "name": "overflow",
+      "name": "Overflow",
       "msg": "Overflow occurred"
     },
     {
       "code": 6001,
-      "name": "invalidAmount",
+      "name": "InvalidAmount",
       "msg": "Invalid amount"
     },
     {
       "code": 6002,
-      "name": "vaultNotActive",
+      "name": "VaultNotActive",
       "msg": "Vault is not active"
     },
     {
       "code": 6003,
-      "name": "insufficientBalance",
+      "name": "InsufficientBalance",
       "msg": "Insufficient balance in vault"
     },
     {
       "code": 6004,
-      "name": "stringTooLong",
+      "name": "StringTooLong",
       "msg": "String too long"
     },
     {
       "code": 6005,
-      "name": "noTokensBurned",
+      "name": "NoTokensBurned",
       "msg": "No tokens burned to mint certificate"
     },
     {
       "code": 6006,
-      "name": "unauthorized",
+      "name": "Unauthorized",
       "msg": "Unauthorized access"
     },
     {
       "code": 6007,
-      "name": "insufficientContribution",
+      "name": "InsufficientContribution",
       "msg": "Insufficient contribution for certificate"
     },
     {
       "code": 6008,
-      "name": "vaultNotEmpty",
+      "name": "VaultNotEmpty",
       "msg": "Vault still contains tokens"
     },
     {
       "code": 6009,
-      "name": "protocolPaused",
+      "name": "ProtocolPaused",
       "msg": "Protocol is paused"
     },
     {
       "code": 6010,
-      "name": "proposalNotPending",
+      "name": "ProposalNotPending",
       "msg": "Proposal is not pending"
     },
     {
       "code": 6011,
-      "name": "proposalNotApproved",
+      "name": "ProposalNotApproved",
       "msg": "Proposal is not approved"
     },
     {
       "code": 6012,
-      "name": "alreadyVoted",
+      "name": "AlreadyVoted",
       "msg": "Already voted on this proposal"
     },
     {
       "code": 6013,
-      "name": "timeLockActive",
+      "name": "TimeLockActive",
       "msg": "Time lock is still active"
     }
   ],
   "types": [
     {
-      "name": "burnProposal",
+      "name": "BurnProposal",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1136,11 +1130,11 @@ export type Purify = {
             }
           },
           {
-            "name": "createdAt",
+            "name": "created_at",
             "type": "i64"
           },
           {
-            "name": "executedAt",
+            "name": "executed_at",
             "type": {
               "option": "i64"
             }
@@ -1149,7 +1143,7 @@ export type Purify = {
             "name": "status",
             "type": {
               "defined": {
-                "name": "proposalStatus"
+                "name": "ProposalStatus"
               }
             }
           },
@@ -1161,7 +1155,7 @@ export type Purify = {
       }
     },
     {
-      "name": "certificate",
+      "name": "Certificate",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1174,15 +1168,15 @@ export type Purify = {
             "type": "pubkey"
           },
           {
-            "name": "amountBurned",
+            "name": "amount_burned",
             "type": "u64"
           },
           {
-            "name": "issuedAt",
+            "name": "issued_at",
             "type": "i64"
           },
           {
-            "name": "metadataUri",
+            "name": "metadata_uri",
             "type": "string"
           },
           {
@@ -1193,7 +1187,7 @@ export type Purify = {
       }
     },
     {
-      "name": "certificateMinted",
+      "name": "CertificateMinted",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1221,7 +1215,7 @@ export type Purify = {
       }
     },
     {
-      "name": "depositRecorded",
+      "name": "DepositRecorded",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1245,27 +1239,27 @@ export type Purify = {
       }
     },
     {
-      "name": "proposalStatus",
+      "name": "ProposalStatus",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "pending"
+            "name": "Pending"
           },
           {
-            "name": "approved"
+            "name": "Approved"
           },
           {
-            "name": "executed"
+            "name": "Executed"
           },
           {
-            "name": "rejected"
+            "name": "Rejected"
           }
         ]
       }
     },
     {
-      "name": "protocolConfig",
+      "name": "ProtocolConfig",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1274,11 +1268,11 @@ export type Purify = {
             "type": "pubkey"
           },
           {
-            "name": "feeRecipient",
+            "name": "fee_recipient",
             "type": "pubkey"
           },
           {
-            "name": "feeBasisPoints",
+            "name": "fee_basis_points",
             "type": "u16"
           },
           {
@@ -1293,7 +1287,7 @@ export type Purify = {
       }
     },
     {
-      "name": "tokensBurned",
+      "name": "TokensBurned",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1317,7 +1311,7 @@ export type Purify = {
       }
     },
     {
-      "name": "userContribution",
+      "name": "UserContribution",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1330,15 +1324,15 @@ export type Purify = {
             "type": "pubkey"
           },
           {
-            "name": "amountDeposited",
+            "name": "amount_deposited",
             "type": "u64"
           },
           {
-            "name": "amountBurned",
+            "name": "amount_burned",
             "type": "u64"
           },
           {
-            "name": "lastUpdated",
+            "name": "last_updated",
             "type": "i64"
           },
           {
@@ -1349,7 +1343,7 @@ export type Purify = {
       }
     },
     {
-      "name": "vaultClosed",
+      "name": "VaultClosed",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1362,7 +1356,7 @@ export type Purify = {
             "type": "pubkey"
           },
           {
-            "name": "totalBurned",
+            "name": "total_burned",
             "type": "u64"
           },
           {
@@ -1373,7 +1367,7 @@ export type Purify = {
       }
     },
     {
-      "name": "vaultState",
+      "name": "VaultState",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1386,27 +1380,27 @@ export type Purify = {
             "type": "pubkey"
           },
           {
-            "name": "totalDeposited",
+            "name": "total_deposited",
             "type": "u64"
           },
           {
-            "name": "totalBurned",
+            "name": "total_burned",
             "type": "u64"
           },
           {
             "name": "status",
             "type": {
               "defined": {
-                "name": "vaultStatus"
+                "name": "VaultStatus"
               }
             }
           },
           {
-            "name": "metadataUri",
+            "name": "metadata_uri",
             "type": "string"
           },
           {
-            "name": "createdAt",
+            "name": "created_at",
             "type": "i64"
           },
           {
@@ -1414,19 +1408,19 @@ export type Purify = {
             "type": "u8"
           },
           {
-            "name": "governanceEnabled",
+            "name": "governance_enabled",
             "type": {
               "option": "bool"
             }
           },
           {
-            "name": "governanceThreshold",
+            "name": "governance_threshold",
             "type": {
               "option": "u8"
             }
           },
           {
-            "name": "lastBurnAt",
+            "name": "last_burn_at",
             "type": {
               "option": "i64"
             }
@@ -1435,18 +1429,18 @@ export type Purify = {
       }
     },
     {
-      "name": "vaultStatus",
+      "name": "VaultStatus",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "active"
+            "name": "Active"
           },
           {
-            "name": "closed"
+            "name": "Closed"
           }
         ]
       }
     }
   ]
-};
+}

@@ -10,8 +10,8 @@ import {
   findBurnProposalAddress
 } from './program';
 import { PURIFY_PROGRAM_ID } from './constants';
-import PurifyIdl from '../../../target/idl/purify.json';
-import type { Purify } from '../../../target/types/purify';
+import PurifyIdl from '../idl/purify.json';
+import type { Purify } from '../types/purify';
 
 const READONLY_KEYPAIR = Keypair.generate();
 
