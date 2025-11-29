@@ -56,6 +56,9 @@ export const translations = {
     'footer.version': 'v1.0.0',
     'footer.carbonNeutral': 'Carbon Neutral',
 
+    // Global Banner
+    'banner.paused': 'Protocol is currently paused. Some operations are temporarily disabled.',
+
     // Whitepaper Page
     'whitepaper.title': 'Purify Protocol Whitepaper',
     'whitepaper.subtitle': 'Cleaning the Blockchain, One Token at a Time',
@@ -126,6 +129,9 @@ export const translations = {
     'footer.audited': 'Diaudit',
     'footer.version': 'v1.0.0',
     'footer.carbonNeutral': 'Netral Karbon',
+
+    // Global Banner
+    'banner.paused': 'Protokol sedang dijeda. Beberapa operasi sementara dinonaktifkan.',
 
     // Whitepaper Page
     'whitepaper.title': 'Whitepaper Purify Protocol',

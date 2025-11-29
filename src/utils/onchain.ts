@@ -2,16 +2,16 @@
 import { Connection, PublicKey, Keypair } from '@solana/web3.js';
 import { AnchorProvider, Program } from '@coral-xyz/anchor';
 import type { Wallet } from '@coral-xyz/anchor';
-import { 
-  findVaultStateAddress, 
+import {
+  findVaultStateAddress,
   findUserContributionAddress,
   findCertificateMintAddress,
   findProtocolConfigAddress,
   findBurnProposalAddress
 } from './program';
 import { PURIFY_PROGRAM_ID } from './constants';
-import PurifyIdl from '../idl/purify.json';
-import type { Purify } from '../types/purify';
+import PurifyIdl from '../types/purify.json';
+import type { Purify } from '../types/purify.ts';
 
 const READONLY_KEYPAIR = Keypair.generate();
 
@@ -73,11 +73,11 @@ export const fetchVaultState = async (
 ): Promise<VaultData | null> => {
   try {
     const [vaultState] = findVaultStateAddress(mint);
-    
+
     const program = getReadonlyProgram(connection);
 
     const vaultAccount = await (program.account as any).vaultState.fetch(vaultState);
-    
+
     return {
       mint: vaultAccount.mint.toString(),
       authority: vaultAccount.authority.toString(),
@@ -87,8 +87,8 @@ export const fetchVaultState = async (
       metadataUri: vaultAccount.metadataUri,
       createdAt: vaultAccount.createdAt.toNumber(),
       // New optional fields
-      governanceEnabled: vaultAccount.governanceEnabled !== null && vaultAccount.governanceEnabled !== undefined 
-        ? (typeof vaultAccount.governanceEnabled === 'boolean' ? vaultAccount.governanceEnabled : vaultAccount.governanceEnabled.toJSON()) 
+      governanceEnabled: vaultAccount.governanceEnabled !== null && vaultAccount.governanceEnabled !== undefined
+        ? (typeof vaultAccount.governanceEnabled === 'boolean' ? vaultAccount.governanceEnabled : vaultAccount.governanceEnabled.toJSON())
         : null,
       governanceThreshold: vaultAccount.governanceThreshold !== null && vaultAccount.governanceThreshold !== undefined
         ? (typeof vaultAccount.governanceThreshold === 'number' ? vaultAccount.governanceThreshold : vaultAccount.governanceThreshold.toNumber())
@@ -113,11 +113,11 @@ export const fetchUserContribution = async (
 ): Promise<UserContributionData | null> => {
   try {
     const [userContribution] = findUserContributionAddress(mint, user);
-    
+
     const program = getReadonlyProgram(connection);
 
     const contributionAccount = await (program.account as any).userContribution.fetch(userContribution);
-    
+
     return {
       user: contributionAccount.user.toString(),
       mint: contributionAccount.mint.toString(),
@@ -145,11 +145,11 @@ export const fetchCertificate = async (
 ): Promise<CertificateData | null> => {
   try {
     const [certificate] = findCertificateMintAddress(mint, owner);
-    
+
     const program = getReadonlyProgram(connection);
 
     const certificateAccount = await (program.account as any).certificate.fetch(certificate);
-    
+
     return {
       mint: certificateAccount.mint.toString(),
       owner: certificateAccount.owner.toString(),
@@ -188,7 +188,7 @@ export const fetchUserVaults = async (
     ]);
 
     const vaults: VaultData[] = [];
-    
+
     for (const event of depositEvents) {
       const vaultData: VaultData = {
         mint: event.account.mint.toString(),
@@ -224,7 +224,7 @@ export const fetchProtocolStats = async (
     const program = getReadonlyProgram(connection);
 
     const allVaults = await (program.account as any).vaultState.all();
-    
+
     let totalDeposited = 0;
     let totalBurned = 0;
     let activeVaults = 0;
@@ -394,11 +394,11 @@ export const fetchProtocolConfig = async (
 } | null> => {
   try {
     const [configAddress] = findProtocolConfigAddress();
-    
+
     const program = getReadonlyProgram(connection);
 
     const configAccount = await (program.account as any).protocolConfig.fetch(configAddress);
-    
+
     return {
       authority: configAccount.authority.toString(),
       feeRecipient: configAccount.feeRecipient.toString(),
@@ -434,11 +434,11 @@ export const fetchBurnProposal = async (
 } | null> => {
   try {
     const [proposalAddress] = findBurnProposalAddress(vaultState, proposer);
-    
+
     const program = getReadonlyProgram(connection);
 
     const proposalAccount = await (program.account as any).burnProposal.fetch(proposalAddress);
-    
+
     // Convert ProposalStatus enum to string
     let status: 'Pending' | 'Approved' | 'Executed' | 'Rejected' = 'Pending';
     if (proposalAccount.status.pending) {
@@ -450,7 +450,7 @@ export const fetchBurnProposal = async (
     } else if (proposalAccount.status.rejected) {
       status = 'Rejected';
     }
-    
+
     return {
       vault: proposalAccount.vault.toString(),
       proposer: proposalAccount.proposer.toString(),
@@ -528,4 +528,3 @@ export const fetchVaultBurnProposals = async (
     return [];
   }
 };
-

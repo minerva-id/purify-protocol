@@ -1,9 +1,9 @@
 // src/utils/transactions.ts
 import { PublicKey, SystemProgram } from '@solana/web3.js';
 import { Program, BN, Idl } from '@coral-xyz/anchor';
-import { 
-  findVaultStateAddress, 
-  findVaultAuthorityAddress, 
+import {
+  findVaultStateAddress,
+  findVaultAuthorityAddress,
   findUserContributionAddress,
   findCertificateMintAddress,
   findProtocolConfigAddress,
@@ -11,10 +11,10 @@ import {
   getAssociatedTokenAddress,
   getMetadataAddress
 } from './program';
-import { 
-  TOKEN_PROGRAM_ID, 
-  ASSOCIATED_TOKEN_PROGRAM_ID, 
-  TOKEN_METADATA_PROGRAM_ID 
+import {
+  TOKEN_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_METADATA_PROGRAM_ID
 } from './constants';
 
 export const initializeVault = async (
@@ -33,7 +33,7 @@ export const initializeVault = async (
     const [vaultState] = findVaultStateAddress(mint);
     console.log('[initializeVault] Vault State PDA:', vaultState.toString());
 
-    const instruction = await program.methods
+    const instruction = program.methods
       .initializeVault(metadataUri)
       .accounts({
         vaultState,
@@ -68,12 +68,12 @@ export const depositToVault = async (
     const [vaultAuthority] = findVaultAuthorityAddress(mint);
     const [userContribution] = findUserContributionAddress(mint, depositor);
 
-    const depositorAta = await getAssociatedTokenAddress(mint, depositor);
-    const vaultAta = await getAssociatedTokenAddress(mint, vaultAuthority, true);
+    const depositorAta = getAssociatedTokenAddress(mint, depositor);
+    const vaultAta = getAssociatedTokenAddress(mint, vaultAuthority, true);
 
     const amountInBaseUnits = new BN(amount * Math.pow(10, 9));
 
-    const instruction = await program.methods
+    const instruction = program.methods
       .depositToVault(amountInBaseUnits)
       .accounts({
         vaultState,
@@ -115,10 +115,10 @@ export const burnFromVault = async (
     const [vaultAuthority] = findVaultAuthorityAddress(mint);
     const [userContribution] = findUserContributionAddress(mint, authority);
 
-    const vaultAta = await getAssociatedTokenAddress(mint, vaultAuthority, true);
+    const vaultAta = getAssociatedTokenAddress(mint, vaultAuthority, true);
     const amountInBaseUnits = new BN(amount * Math.pow(10, 9));
 
-    const instruction = await program.methods
+    const instruction = program.methods
       .burnFromVault(amountInBaseUnits)
       .accounts({
         vaultState,
@@ -169,7 +169,7 @@ export const createBurnProposal = async (
 
     const amountInBaseUnits = new BN(amount * Math.pow(10, 9));
 
-    const instruction = await program.methods
+    const instruction = program.methods
       .createBurnProposal(amountInBaseUnits)
       .accounts({
         proposal,
@@ -203,7 +203,7 @@ export const voteOnProposal = async (
 
     const [proposal] = findBurnProposalAddress(vaultState, proposer);
 
-    const instruction = await program.methods
+    const instruction = program.methods
       .voteOnProposal()
       .accounts({
         proposal,
@@ -238,12 +238,12 @@ export const executeBurnProposal = async (
     const [config] = findProtocolConfigAddress();
     const [vaultAuthority] = findVaultAuthorityAddress(mint);
 
-    const vaultAta = await getAssociatedTokenAddress(mint, vaultAuthority, true);
-    
+    const vaultAta = getAssociatedTokenAddress(mint, vaultAuthority, true);
+
     // Fetch config to get fee recipient if not provided
     let feeRecipientAta: PublicKey | undefined;
     if (feeRecipient) {
-      feeRecipientAta = await getAssociatedTokenAddress(mint, feeRecipient);
+      feeRecipientAta = getAssociatedTokenAddress(mint, feeRecipient);
     }
 
     const accounts: any = {
@@ -261,7 +261,7 @@ export const executeBurnProposal = async (
       accounts.feeRecipientAta = feeRecipientAta;
     }
 
-    const instruction = await program.methods
+    const instruction = program.methods
       .executeBurnProposal()
       .accounts(accounts)
       .instruction();
@@ -274,13 +274,36 @@ export const executeBurnProposal = async (
   }
 };
 
+export const initializeProtocolConfig = async (
+  program: Program<Idl>,
+  authority: PublicKey,
+  feeRecipient: PublicKey
+) => {
+  try {
+    const [config] = findProtocolConfigAddress();
+    const instruction = program.methods
+      .initializeProtocolConfig()
+      .accounts({
+        config,
+        authority,
+        feeRecipient,
+        systemProgram: SystemProgram.programId,
+      })
+      .instruction();
+    return instruction;
+  } catch (error) {
+    console.error('[initializeProtocolConfig] Error creating instruction:', error);
+    throw error;
+  }
+};
+
 export const pauseProtocol = async (
   program: Program<Idl>,
   authority: PublicKey
 ) => {
   try {
     const [config] = findProtocolConfigAddress();
-    const instruction = await program.methods
+    const instruction = program.methods
       .pauseProtocol()
       .accounts({
         config,
@@ -302,7 +325,7 @@ export const unpauseProtocol = async (
 ) => {
   try {
     const [config] = findProtocolConfigAddress();
-    const instruction = await program.methods
+    const instruction = program.methods
       .unpauseProtocol()
       .accounts({
         config,
@@ -317,3 +340,6 @@ export const unpauseProtocol = async (
     throw error;
   }
 };
+
+
+// fetchProtocolConfig removed — use hooks/utils in onchain.ts instead

@@ -23,28 +23,26 @@ const DEFAULT_SUGGESTIONS: VaultSuggestion[] = [
 ];
 
 export const useVaultSuggestions = () => {
-  const [suggestions, setSuggestions] = useState<VaultSuggestion[]>(DEFAULT_SUGGESTIONS);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+  const [suggestions, setSuggestions] = useState<VaultSuggestion[]>(() => {
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as VaultSuggestion[];
-        setSuggestions((prev) => {
+      if (typeof window !== 'undefined') {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as VaultSuggestion[];
           const map = new Map<string, VaultSuggestion>();
-          [...parsed, ...prev].forEach((item) => {
+          [...parsed, ...DEFAULT_SUGGESTIONS].forEach((item) => {
             if (item?.mint) {
               map.set(item.mint, item);
             }
           });
           return Array.from(map.values()).slice(0, MAX_SUGGESTIONS);
-        });
+        }
       }
     } catch (error) {
       console.warn('[useVaultSuggestions] failed to load suggestions', error);
     }
-  }, []);
+    return DEFAULT_SUGGESTIONS;
+  });
 
   const persist = useCallback((items: VaultSuggestion[]) => {
     if (typeof window === 'undefined') return;
@@ -72,4 +70,3 @@ export const useVaultSuggestions = () => {
 
   return { suggestions, addSuggestion };
 };
-

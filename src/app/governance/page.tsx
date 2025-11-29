@@ -5,9 +5,9 @@ import { useState, useEffect, useMemo } from "react";
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useRouter } from 'next/navigation';
 import { PublicKey, Transaction } from '@solana/web3.js';
-import { 
-  Vote, 
-  Plus, 
+import {
+  Vote,
+  Plus,
   TrendingUp,
   CheckCircle2
 } from "lucide-react";
@@ -21,7 +21,7 @@ import { useNotification } from '@/contexts/NotificationContext';
 import { useProtocolConfig, useVaultBurnProposals, useVaultState } from '@/hooks/useOnChainData';
 import { useVaultSuggestions } from '@/hooks/useVaultSuggestions';
 import { usePurifyProgram } from '@/utils/program';
-import { createBurnProposal, voteOnProposal, executeBurnProposal, pauseProtocol, unpauseProtocol } from '@/utils/transactions';
+import { createBurnProposal, voteOnProposal, executeBurnProposal, pauseProtocol, unpauseProtocol, initializeProtocolConfig } from '@/utils/transactions';
 import { findVaultStateAddress } from '@/utils/program';
 import { parseSolanaError } from '@/utils/onchain';
 
@@ -41,7 +41,7 @@ export default function GovernancePage() {
   const t = useTranslations(locale);
   const { success, error, info } = useNotification();
   const { getProgram } = usePurifyProgram();
-  
+
   useEffect(() => {
     if (!selectedVaultMint) {
       setMintPublicKey(null);
@@ -69,6 +69,8 @@ export default function GovernancePage() {
   const { proposals, loading: proposalsLoading } = useVaultBurnProposals(vaultStatePubkey);
   const { vaultState, loading: vaultStateLoading } = useVaultState(mintPublicKey ?? undefined);
   const { suggestions, addSuggestion } = useVaultSuggestions();
+  const TARGET_AUTHORITY = 'BkU2ybkoxv9FKfkmCWcSpKAo2cy3FhkEtCrE72bDZH6R';
+  const DEFAULT_FEE_RECIPIENT = TARGET_AUTHORITY;
 
   useEffect(() => {
     setIsClient(true);
@@ -223,10 +225,10 @@ export default function GovernancePage() {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-[#03150f] via-[#09261f] to-[#010a07] text-white overflow-hidden font-sans">
-      
+
       {/* Header */}
       <div className="relative z-10 container mx-auto px-6 py-8">
-        
+
         {/* Page Title */}
         <motion.div
           className="mb-8"
@@ -240,13 +242,13 @@ export default function GovernancePage() {
                 {locale === 'id' ? 'Governance' : 'Governance'}
               </h1>
               <p className="text-gray-300">
-                {locale === 'id' 
-                  ? 'Kelola protokol melalui voting dan proposal' 
+                {locale === 'id'
+                  ? 'Kelola protokol melalui voting dan proposal'
                   : 'Manage protocol through voting and proposals'
                 }
               </p>
             </div>
-            
+
             <motion.button
               onClick={() => setShowCreateModal(true)}
               className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2"
@@ -266,6 +268,44 @@ export default function GovernancePage() {
           ) : (
             <>
               <ProtocolStatus config={config} />
+              {!config && publicKey && (
+                <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                  <p className="text-sm text-yellow-200 mb-2">
+                    {locale === 'id' ? 'Konfigurasi protokol belum diinisialisasi.' : 'Protocol configuration is not initialized.'}
+                  </p>
+                  {publicKey.toString() === TARGET_AUTHORITY ? (
+                    <LoadingButton
+                      isLoading={false}
+                      onClick={async () => {
+                        try {
+                          const program = getProgram();
+                          const feeRecipient = new PublicKey(DEFAULT_FEE_RECIPIENT);
+                          const instruction = await initializeProtocolConfig(program, publicKey, feeRecipient);
+                          const transaction = new Transaction().add(instruction);
+                          transaction.feePayer = publicKey;
+                          transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+                          info(locale === 'id' ? 'Inisialisasi Konfigurasi' : 'Initializing Configuration', locale === 'id' ? 'Setujui transaksi di wallet Anda' : 'Approve the transaction in your wallet');
+                          const signature = await sendTransaction(transaction, connection);
+                          await connection.confirmTransaction(signature, 'confirmed');
+                          success(locale === 'id' ? 'Konfigurasi Diinisialisasi' : 'Configuration Initialized', locale === 'id' ? 'Authority dan fee recipient diset' : 'Authority and fee recipient set');
+                        } catch (err) {
+                          const errorMsg = parseSolanaError(err);
+                          error(errorMsg.title, errorMsg.message);
+                        }
+                      }}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                    >
+                      {locale === 'id' ? 'Inisialisasi Protocol Config' : 'Initialize Protocol Config'}
+                    </LoadingButton>
+                  ) : (
+                    <p className="text-xs text-yellow-300">
+                      {locale === 'id'
+                        ? `Hubungkan wallet authority (${TARGET_AUTHORITY.slice(0, 6)}…) untuk inisialisasi.`
+                        : `Connect authority wallet (${TARGET_AUTHORITY.slice(0, 6)}…) to initialize.`}
+                    </p>
+                  )}
+                </div>
+              )}
               {config && publicKey && config.authority === publicKey.toString() && (
                 <div className="flex flex-wrap gap-3">
                   <LoadingButton
@@ -446,7 +486,7 @@ export default function GovernancePage() {
           {!mintPublicKey && (
             <div className="text-center py-12 bg-white/5 rounded-2xl border border-emerald-500/20">
               <p className="text-gray-400">
-                {locale === 'id' 
+                {locale === 'id'
                   ? 'Masukkan alamat mint untuk melihat proposal'
                   : 'Enter a mint address to view proposals'
                 }
@@ -495,7 +535,7 @@ export default function GovernancePage() {
             <div className="text-center py-12 bg-white/5 rounded-2xl border border-emerald-500/20">
               <Vote className="text-gray-400 mx-auto mb-4" size={48} />
               <p className="text-gray-400">
-                {locale === 'id' 
+                {locale === 'id'
                   ? 'Belum ada proposal. Buat proposal pertama Anda!'
                   : 'No proposals yet. Create your first proposal!'
                 }
@@ -516,7 +556,7 @@ export default function GovernancePage() {
             <h3 className="text-2xl font-bold text-white mb-4">
               {locale === 'id' ? 'Buat Burn Proposal' : 'Create Burn Proposal'}
             </h3>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -530,7 +570,7 @@ export default function GovernancePage() {
                   className="w-full bg-white/10 border border-emerald-500/30 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   {locale === 'id' ? 'Amount' : 'Amount'}

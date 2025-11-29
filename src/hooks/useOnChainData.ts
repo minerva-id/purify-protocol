@@ -2,16 +2,19 @@
 import { useState, useEffect } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
-import { 
-  fetchProtocolStats, 
+import {
+  fetchProtocolStats,
   fetchUserContribution,
   fetchUserVaults,
   fetchVaultState,
   fetchProtocolConfig,
   fetchVaultBurnProposals,
   VaultData,
-  UserContributionData 
+  UserContributionData
 } from '@/utils/onchain';
+
+const CONFIG_CACHE_KEY = 'purify_protocol_config';
+const PROPOSALS_CACHE_KEY_PREFIX = 'purify_vault_proposals_';
 
 export const useProtocolStats = () => {
   const { connection } = useConnection();
@@ -39,7 +42,7 @@ export const useProtocolStats = () => {
     };
 
     loadStats();
-    
+
     // Refresh every 30 seconds
     const interval = setInterval(loadStats, 30000);
     return () => clearInterval(interval);
@@ -75,7 +78,7 @@ export const useUserContribution = (mint?: PublicKey) => {
     };
 
     loadContribution();
-    
+
     // Refresh every 10 seconds
     const interval = setInterval(loadContribution, 10000);
     return () => clearInterval(interval);
@@ -111,7 +114,7 @@ export const useUserVaults = () => {
     };
 
     loadVaults();
-    
+
     // Refresh every 15 seconds
     const interval = setInterval(loadVaults, 15000);
     return () => clearInterval(interval);
@@ -146,7 +149,7 @@ export const useVaultState = (mint?: PublicKey) => {
     };
 
     loadVaultState();
-    
+
     // Refresh every 10 seconds
     const interval = setInterval(loadVaultState, 10000);
     return () => clearInterval(interval);
@@ -167,11 +170,36 @@ export const useProtocolConfig = () => {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem(CONFIG_CACHE_KEY);
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (cached && cached.data) {
+          const fresh = cached.ts && typeof cached.ts === 'number' ? Date.now() - cached.ts < 30000 : true;
+          if (fresh) {
+            setConfig(cached.data);
+            setLoading(false);
+          }
+        }
+      }
+    } catch { }
+  }, []);
+
+  useEffect(() => {
     const loadConfig = async () => {
       try {
         setLoading(true);
         const data = await fetchProtocolConfig(connection);
         setConfig(data);
+        if (typeof window !== 'undefined') {
+          try {
+            window.localStorage.setItem(
+              CONFIG_CACHE_KEY,
+              JSON.stringify({ data, ts: Date.now() })
+            );
+          } catch { }
+        }
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to fetch protocol config'));
         console.error('Error loading protocol config:', err);
@@ -181,7 +209,7 @@ export const useProtocolConfig = () => {
     };
 
     loadConfig();
-    
+
     // Refresh every 30 seconds
     const interval = setInterval(loadConfig, 30000);
     return () => clearInterval(interval);
@@ -206,6 +234,24 @@ export const useVaultBurnProposals = (vaultState?: PublicKey) => {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    if (!vaultState) return;
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem(PROPOSALS_CACHE_KEY_PREFIX + vaultState.toBase58());
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (cached && Array.isArray(cached.data)) {
+          const fresh = cached.ts && typeof cached.ts === 'number' ? Date.now() - cached.ts < 15000 : true;
+          if (fresh) {
+            setProposals(cached.data);
+            setLoading(false);
+          }
+        }
+      }
+    } catch { }
+  }, [vaultState]);
+
+  useEffect(() => {
     if (!vaultState) {
       setLoading(false);
       return;
@@ -216,6 +262,14 @@ export const useVaultBurnProposals = (vaultState?: PublicKey) => {
         setLoading(true);
         const data = await fetchVaultBurnProposals(connection, vaultState);
         setProposals(data);
+        if (typeof window !== 'undefined') {
+          try {
+            window.localStorage.setItem(
+              PROPOSALS_CACHE_KEY_PREFIX + vaultState.toBase58(),
+              JSON.stringify({ data, ts: Date.now() })
+            );
+          } catch { }
+        }
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to fetch burn proposals'));
         console.error('Error loading burn proposals:', err);
@@ -225,7 +279,7 @@ export const useVaultBurnProposals = (vaultState?: PublicKey) => {
     };
 
     loadProposals();
-    
+
     // Refresh every 15 seconds
     const interval = setInterval(loadProposals, 15000);
     return () => clearInterval(interval);
@@ -233,4 +287,3 @@ export const useVaultBurnProposals = (vaultState?: PublicKey) => {
 
   return { proposals, loading, error };
 };
-

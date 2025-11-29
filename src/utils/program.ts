@@ -2,12 +2,12 @@
 import { Program, AnchorProvider, Idl } from '@coral-xyz/anchor';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, SystemProgram, Keypair, Connection } from '@solana/web3.js';
-import IDL from '@/idl/purify.json';
-import { 
-  PURIFY_PROGRAM_ID, 
-  TOKEN_PROGRAM_ID, 
+import IDL from '@/types/purify.json';
+import {
+  PURIFY_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
-  TOKEN_METADATA_PROGRAM_ID 
+  TOKEN_METADATA_PROGRAM_ID
 } from './constants';
 
 export const usePurifyProgram = () => {
@@ -56,13 +56,13 @@ export const usePurifyProgram = () => {
       // Try the (idl, programId, provider) overload first — it's more explicit
       try {
         console.log('[usePurifyProgram] Attempting Program(IDL, programId, provider) (preferred)');
-        program = new (Program as any)(IDL as Idl, PURIFY_PROGRAM_ID as PublicKey, provider);
+        program = new Program(IDL as Idl, provider);
         console.log('[usePurifyProgram] Program created using (idl, programId, provider) overload');
       } catch (err1) {
         console.warn('[usePurifyProgram] (idl, programId, provider) overload failed, trying (idl, provider):', err1);
         try {
           console.log('[usePurifyProgram] Attempting Program(IDL, provider)');
-          program = new (Program as any)(IDL as Idl, provider);
+          program = new Program(IDL as Idl, provider as any);
           console.log('[usePurifyProgram] Program created using (idl, provider) overload');
         } catch (err2) {
           console.error('[usePurifyProgram] Both Program constructor overloads failed', err1, err2);
@@ -72,7 +72,7 @@ export const usePurifyProgram = () => {
             const w = (provider as any)?.wallet;
             const c = (provider as any)?.connection;
             console.error('[usePurifyProgram] provider.wallet keys:', w ? Object.keys(w) : 'no-wallet');
-            console.error('[usePurifyProgram] provider.wallet.publicKey (raw):', (w && (w.publicKey as any)) || null);
+            console.error('[usePurifyProgram] provider.wallet.publicKey (raw):', (w && (w.publicKey)) || null);
             console.error('[usePurifyProgram] provider.wallet.publicKey type:', w && w.publicKey ? Object.prototype.toString.call(w.publicKey) : 'none');
             console.error('[usePurifyProgram] provider.connection keys:', c ? Object.keys(c) : 'no-connection');
           } catch (diagErr) {
@@ -139,11 +139,11 @@ export const findBurnProposalAddress = (vaultState: PublicKey, proposer: PublicK
 };
 
 // Helper functions (tetap sama)
-export const getAssociatedTokenAddress = async (
+export const getAssociatedTokenAddress = (
   mint: PublicKey,
   owner: PublicKey,
   allowOwnerOffCurve = false
-): Promise<PublicKey> => {
+): PublicKey => {
   return PublicKey.findProgramAddressSync(
     [
       owner.toBuffer(),
@@ -154,7 +154,7 @@ export const getAssociatedTokenAddress = async (
   )[0];
 };
 
-export const getMetadataAddress = async (mint: PublicKey): Promise<PublicKey> => {
+export const getMetadataAddress = (mint: PublicKey): PublicKey => {
   return PublicKey.findProgramAddressSync(
     [
       Buffer.from('metadata'),
