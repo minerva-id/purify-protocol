@@ -1,43 +1,40 @@
-// components/common/CustomWalletButton.tsx
 "use client";
 
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletReadyState } from '@solana/wallet-adapter-base';
-import { useState, useEffect } from 'react';
+import { useState } from 'react'; // Hapus useEffect yang tidak dipakai
 import { createPortal } from 'react-dom';
 
 export function CustomWalletButton({ centerOnOpen = false }: { centerOnOpen?: boolean }) {
   const { connected, disconnect, publicKey, select, wallets, connecting } = useWallet();
   const [showModal, setShowModal] = useState(false);
 
-  // Clear wallet selection history setiap kali component mount
-  useEffect(() => {
-    const clearWalletHistory = () => {
-      localStorage.removeItem('walletName');
-      localStorage.removeItem('walletAdapter');
-      sessionStorage.removeItem('walletName');
-    };
-
-    clearWalletHistory();
-
-    // Clear juga saat window focus (user kembali ke tab)
-    window.addEventListener('focus', clearWalletHistory);
-    return () => window.removeEventListener('focus', clearWalletHistory);
-  }, []);
+  // --- HAPUS BAGIAN INI ---
+  // useEffect(() => {
+  //   const clearWalletHistory = () => { ... }
+  //   ...
+  // }, []);
+  // ------------------------
 
   const handleConnect = () => {
-    // Always open the wallet selection modal so the header button behaves like
-    // the landing page "Select Wallet" flow (allow switching even if connected).
     setShowModal(true);
   };
 
   const handleWalletSelect = (walletName: string) => {
-    // Clear previous selection sebelum select baru
-    localStorage.removeItem('walletName');
-    localStorage.removeItem('walletAdapter');
+    // --- HAPUS BAGIAN INI ---
+    // localStorage.removeItem('walletName');
+    // localStorage.removeItem('walletAdapter');
+    // ------------------------
 
+    // Cukup panggil select, library akan otomatis simpan ke localStorage
     select(walletName as any);
     setShowModal(false);
+  };
+
+  const handleDisconnect = () => {
+      disconnect();
+      setShowModal(false);
+      // Tidak perlu manual remove localStorage, disconnect() sudah menanganinya
   };
 
   const truncatedAddress = publicKey
@@ -91,17 +88,11 @@ export function CustomWalletButton({ centerOnOpen = false }: { centerOnOpen?: bo
         </div>
 
         <div className="mt-4">
-          <p className="text-gray-400 text-sm mb-3 text-center">Select a wallet to connect. Your choice will not be saved.</p>
+          <p className="text-gray-400 text-sm mb-3 text-center">Select a wallet to connect.</p>
           {connected && (
             <div className="flex justify-center">
               <button
-                onClick={() => {
-                  // allow explicit disconnect from the modal
-                  localStorage.removeItem('walletName');
-                  localStorage.removeItem('walletAdapter');
-                  disconnect();
-                  setShowModal(false);
-                }}
+                onClick={handleDisconnect}
                 className="text-sm bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
               >
                 Disconnect
@@ -115,7 +106,6 @@ export function CustomWalletButton({ centerOnOpen = false }: { centerOnOpen?: bo
 
   return (
     <>
-      {/* Wallet Connection Button */}
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -136,19 +126,17 @@ export function CustomWalletButton({ centerOnOpen = false }: { centerOnOpen?: bo
           </>
         ) : (
           <>
-            <span>👛</span>
+            <span>💳</span>
             <span>Connect Wallet</span>
           </>
         )}
       </button>
 
-      {/* Portalized Modal */}
       {showModal && typeof document !== 'undefined' && createPortal(modal, document.body)}
     </>
   );
 }
 
-// Helper function untuk wallet install URLs
 function getWalletInstallUrl(walletName: string): string {
   const urls: { [key: string]: string } = {
     Phantom: 'https://phantom.app/',
@@ -156,6 +144,5 @@ function getWalletInstallUrl(walletName: string): string {
     Backpack: 'https://www.backpack.app/',
     Glow: 'https://glow.app/',
   };
-
   return urls[walletName] || 'https://solana.com/ecosystem/explore?categories=wallet';
 }
