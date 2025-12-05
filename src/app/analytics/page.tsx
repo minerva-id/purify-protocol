@@ -105,14 +105,15 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="relative z-10 container mx-auto px-6 py-8">
         
-        {/* Page Title */}
+        {/* Page Title - UPDATED FOR MOBILE RESPONSIVENESS */}
         <motion.div
           className="mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="flex items-center justify-between mb-4">
+          {/* Changed layout: Stack vertically on mobile, horizontal on sm/desktop */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 mb-4">
             <div>
               <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent mb-2">
                 {locale === 'id' ? 'Analitik Protokol' : 'Protocol Analytics'}
@@ -125,13 +126,13 @@ export default function AnalyticsPage() {
               </p>
             </div>
             
-            {/* Time Range Selector */}
-            <div className="flex space-x-2 bg-white/5 rounded-lg p-1 border border-emerald-500/20">
+            {/* Time Range Selector - Scrollable on very small screens if needed */}
+            <div className="flex space-x-2 bg-white/5 rounded-lg p-1 border border-emerald-500/20 w-full sm:w-auto overflow-x-auto no-scrollbar">
               {(['24h', '7d', '30d', 'all'] as const).map((range) => (
                 <button
                   key={range}
                   onClick={() => setTimeRange(range)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-1 sm:flex-none text-center ${
                     timeRange === range
                       ? 'bg-emerald-500 text-white'
                       : 'text-gray-300 hover:bg-white/10'
@@ -334,7 +335,8 @@ export default function AnalyticsPage() {
             <span>{locale === 'id' ? 'Distribusi Aktivitas' : 'Activity Distribution'}</span>
           </h2>
           
-          <div className="grid grid-cols-2 gap-6">
+          {/* UPDATED FOR MOBILE: Changed from grid-cols-2 to grid-cols-1 on mobile, grid-cols-2 on md+ */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
@@ -372,4 +374,3 @@ export default function AnalyticsPage() {
     </div>
   );
 }
-
