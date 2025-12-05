@@ -1,4 +1,3 @@
-// components/common/Header.tsx
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -151,6 +150,16 @@ export default function Header() {
 
               {connected && (
                 <>
+                  {/* --- PERBAIKAN: Menambahkan Dashboard Link ke Mobile Menu --- */}
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileOpen(false)}
+                    className={`${isActive('/dashboard') ? 'text-emerald-400' : 'text-gray-300 hover:text-emerald-400'} py-2 font-medium`}
+                  >
+                     {t('nav.dashboard')}
+                  </Link>
+                  {/* --------------------------------------------------------- */}
+
                   <Link
                     href="/analytics"
                     onClick={() => setMobileOpen(false)}
