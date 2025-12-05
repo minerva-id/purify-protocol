@@ -61,14 +61,17 @@ export default function GovernancePage() {
 
   // Fetch real on-chain data
   const { config, loading: configLoading } = useProtocolConfig();
+  
   const vaultStatePubkey = useMemo(() => {
     if (!mintPublicKey) return undefined;
     const [vaultState] = findVaultStateAddress(mintPublicKey);
     return vaultState;
   }, [mintPublicKey]);
+
   const { proposals, loading: proposalsLoading } = useVaultBurnProposals(vaultStatePubkey);
   const { vaultState, loading: vaultStateLoading } = useVaultState(mintPublicKey ?? undefined);
   const { suggestions, addSuggestion } = useVaultSuggestions();
+  
   const TARGET_AUTHORITY = 'BkU2ybkoxv9FKfkmCWcSpKAo2cy3FhkEtCrE72bDZH6R';
   const DEFAULT_FEE_RECIPIENT = TARGET_AUTHORITY;
 
@@ -109,7 +112,6 @@ export default function GovernancePage() {
     try {
       const [vaultStateAddress] = findVaultStateAddress(mintPublicKey);
       const program = getProgram();
-
       info('Creating Proposal', 'Please approve the transaction...');
 
       const instruction = await createBurnProposal(
@@ -118,7 +120,7 @@ export default function GovernancePage() {
         publicKey,
         amount
       );
-
+      
       const transaction = new Transaction().add(instruction);
       transaction.feePayer = publicKey;
       transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
@@ -137,7 +139,6 @@ export default function GovernancePage() {
 
   const handleVote = async (proposal: typeof proposals[0]) => {
     if (!publicKey) return;
-
     try {
       const vaultState = new PublicKey(proposal.vault);
       const proposer = new PublicKey(proposal.proposer);
@@ -151,7 +152,7 @@ export default function GovernancePage() {
         proposer,
         publicKey
       );
-
+      
       const transaction = new Transaction().add(instruction);
       transaction.feePayer = publicKey;
       transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
@@ -168,7 +169,6 @@ export default function GovernancePage() {
 
   const handleExecute = async (proposal: typeof proposals[0]) => {
     if (!publicKey) return;
-
     try {
       if (!mintPublicKey) {
         error('Missing Mint', 'Please enter a valid mint before executing proposals');
@@ -181,7 +181,6 @@ export default function GovernancePage() {
       const feeRecipientPubkey = config?.feeRecipient ? new PublicKey(config.feeRecipient) : undefined;
 
       info('Executing Proposal', 'Please approve the transaction...');
-
       const instruction = await executeBurnProposal(
         program,
         mintPublicKey,
@@ -189,7 +188,7 @@ export default function GovernancePage() {
         proposer,
         feeRecipientPubkey
       );
-
+      
       const transaction = new Transaction().add(instruction);
       transaction.feePayer = publicKey;
       transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
@@ -229,14 +228,15 @@ export default function GovernancePage() {
       {/* Header */}
       <div className="relative z-10 container mx-auto px-6 py-8">
 
-        {/* Page Title */}
+        {/* Page Title - UPDATED FOR MOBILE RESPONSIVENESS */}
         <motion.div
           className="mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="flex items-center justify-between mb-4">
+          {/* Changed flex container to column on mobile, row on small screens and up */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 mb-4">
             <div>
               <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent mb-2">
                 {locale === 'id' ? 'Governance' : 'Governance'}
@@ -249,9 +249,10 @@ export default function GovernancePage() {
               </p>
             </div>
 
+            {/* Button now full width on mobile (w-full), auto on desktop (sm:w-auto) */}
             <motion.button
               onClick={() => setShowCreateModal(true)}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2"
+              className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -511,11 +512,9 @@ export default function GovernancePage() {
                   executedAt: proposal.executedAt || undefined,
                   status: proposal.status,
                 };
-
                 const vaultBalance = vaultState?.totalDeposited ?? 0;
                 const threshold = vaultState?.governanceThreshold ?? 2;
                 const lastBurnTime = vaultState?.lastBurnAt ?? null;
-
                 return (
                   <BurnProposalCard
                     key={index}
